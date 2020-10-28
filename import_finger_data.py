@@ -19,7 +19,7 @@ def get_mesh_point(obj_file_path):
             # if strs[0] == "vt":
             #     break
     # points原本为列表，需要转变为矩阵，方便处理
-    points = np.array(points)
+    # points = np.array(points)
     return points
 
 
@@ -32,7 +32,7 @@ def get_center_point(points):
         x_total += p[0]
         y_total += p[1]
         z_total += p[2]
-    size = points.shape[0]
+    size = len(points)
     center_point = [x_total / size, y_total / size, z_total / size]
     center_point = np.array(center_point)
     return center_point
@@ -82,17 +82,6 @@ def get_all_camera_origin():
     return camera_origins
 
 
-# 判断mesh上一个顶点来自哪个摄像机拍摄（与哪个摄像机最近）
-def get_point_from_which_camera(cur_point, center_point, camera_points):
-    # 设当前顶点为N，中心点为0，两个相邻的相机为X，Y。则判断分为两步
-    # 第一步：ON向量在OX和OY之间，当且仅当ON=aOX+bOY (a>0,b>0) ,这一步可得出顶点位于哪两个相机之间
-    # 第二步：第一步得出的两个相机之后，进一步判断顶点N离哪个相机最近，可使用两向量夹角余弦作比较，夹角越小，余弦值越大，离的更近
-
-    # 第一步又分成以下步骤，先根据BCD相机位置得出相机平面ax+by+cz+d=0
-    # 求出为[0.5867577618277175, 0.6067199415465236, 0.3865602108708487, 0.1974731445481592]
-    camera_plane = get_camera_plane(camera_points)
-
-
 # 获取相机平面ax+by+cz+d=0
 def get_camera_plane(camera_point):
     # B相机坐标
@@ -117,11 +106,11 @@ def get_camera_plane(camera_point):
 
 
 # 点到空间平面的映射点
-def get_mapping_point_in_camera_plane(point, camera_plane):
-    a = camera_plane[0]
-    b = camera_plane[1]
-    c = camera_plane[2]
-    d = camera_plane[3]
+def get_mapping_point_in_camera_plane(point, camera_plane_para):
+    a = camera_plane_para[0]
+    b = camera_plane_para[1]
+    c = camera_plane_para[2]
+    d = camera_plane_para[3]
     x = point[0]
     y = point[1]
     z = point[2]
@@ -133,7 +122,45 @@ def get_mapping_point_in_camera_plane(point, camera_plane):
     return point_
 
 
-# 根据叉乘（向量积）来判断点来自于哪个相机
+# 数据集所有点映射到平面
+def get_data_points_mapping(data_points, camera_plane_para):
+    for i in range(len(data_points)):
+        cur_point_mapping = get_mapping_point_in_camera_plane(data_points[i], camera_plane_para)
+        data_points[i] = cur_point_mapping
+    return data_points
+
+
+# 方法一 根据映射投影矢量之间夹角最小来判断mesh上所有顶点来自哪个摄像机拍摄（与哪个摄像机最近）
+def get_data_points_from_which_camera(center_point, data_points, camera_points):
+    # 设当前顶点为N，中心点为0，两个相邻的相机为X，Y。则判断分为两步
+    # 第二步：根据O_N_向量与OA,OB...等向量夹角，找到夹角最小的相机即为所选择
+
+    # 计算一下每个相机出现的次数，判断是否均衡
+    camera_index_count = [0, 0, 0, 0, 0, 0]
+    for i in range(len(data_points)):
+        cur_target_camera_index = get_single_point_from_which_camera(center_point, data_points[i], camera_points)
+        data_points[i].append(cur_target_camera_index)  # 将找到的相机添加在当前数据后面
+        camera_index_count[cur_target_camera_index] += 1
+    print("每个相机出现的次数为：", camera_index_count)  # 分别为38, 49, 51, 36, 40, 42
+    return data_points
+
+
+# 判断mesh上单一顶点来自哪个摄像机拍摄（与哪个摄像机最近）
+# 根据ON向量与OA,OB,...向量夹角比较，夹角越小，余弦值越大，即为所需
+def get_single_point_from_which_camera(center_point, cur_point, camera_points):
+    cur_vector = calculate_vector(center_point, cur_point)
+    max_vector_cosine = -2  # 初始化最大值为一个很小的值
+    target_camera_index = 0  # 初始化A相机是所求的相机下标，0代表A，1代表B 以此类推
+    for i in range(len(camera_points)):
+        camera_vector = calculate_vector(center_point, camera_points[i])
+        cur_cosine = calculate_cosine(cur_vector, camera_vector)
+        if cur_cosine > max_vector_cosine:
+            max_vector_cosine = cur_cosine
+            target_camera_index = i
+    return target_camera_index
+
+
+# 方法二 根据叉乘（向量积）来判断点来自于哪个相机
 def get_point_from_which_camera2(cur_point, center_point, camera_points):
     cur_vector = calculate_vector(center_point, cur_point)
     count = 0
@@ -147,7 +174,7 @@ def get_point_from_which_camera2(cur_point, center_point, camera_points):
         vector_product2 = calculate_vector_product(camera_vector2, cur_vector)
         # 判断计算出的两个向量积的夹角
         if calculate_cosine(vector_product1, vector_product2) <= 0:
-            count += 1
+            count += 1  # 只是判断是否存在一个点的值小于0
     return count
 
 
@@ -174,3 +201,8 @@ def calculate_cosine(vector1, vector2):
     c = math.sqrt(vector2[0] * vector2[0] + vector2[1] * vector2[1] + vector2[2] * vector2[2])
     res = a / (b * c)
     return res
+
+
+def print_data_points(data_points):
+    for li in data_points:
+        print(li)
