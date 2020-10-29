@@ -34,8 +34,9 @@ if __name__ == '__main__':
     # ifd.print_data_points(data_points_mapping)
 
     # 数据预处理完毕，寻找每个点对应的相机
+    # 这里注意找到相机之后需要添加到源数据点上，而不是映射后的数据点
     data_points_contain_camera = pfd.get_data_points_from_which_camera(center_point_mapping, data_points_mapping,
-                                                                       camera_point_mapping)
+                                                                       camera_point_mapping, data_points)
     print("获取所有数据点以及其来源的相机索引\n")
     tl.print_data_points(data_points_contain_camera)
 

@@ -14,7 +14,9 @@ def get_mesh_point(obj_file_path):
                 break
             strs = line.split(" ")
             if strs[0] == "v":
-                points.append((float(strs[1]), float(strs[2]), float(strs[3])))
+                cur = [float(strs[1]), float(strs[2]), float(strs[3])]
+                points.append(cur)
+                # points.append((float(strs[1]), float(strs[2]), float(strs[3])))
             else:
                 break
             # if strs[0] == "vt":
@@ -86,25 +88,27 @@ def get_camera_plane(camera_point):
 
 # 数据集所有点映射到平面
 def get_data_points_mapping(data_points, camera_plane_para):
+    data_points_mapping = []
     for i in range(len(data_points)):
         cur_point_mapping = tl.get_mapping_point_in_camera_plane(data_points[i], camera_plane_para)
-        data_points[i] = cur_point_mapping
-    return data_points
+        data_points_mapping.append(cur_point_mapping)
+    return data_points_mapping
 
 
 # 方法一 根据映射投影矢量之间夹角最小来判断mesh上所有顶点来自哪个摄像机拍摄（与哪个摄像机最近）
-def get_data_points_from_which_camera(center_point, data_points, camera_points):
+def get_data_points_from_which_camera(center_point, data_points_mapping, camera_points, data_points):
     # 设当前顶点为N，中心点为0，两个相邻的相机为X，Y。则判断分为两步
     # 第二步：根据O_N_向量与OA,OB...等向量夹角，找到夹角最小的相机即为所选择
 
     # 计算一下每个相机出现的次数，判断是否均衡
     camera_index_count = [0, 0, 0, 0, 0, 0]
-    for i in range(len(data_points)):
-        cur_target_camera_index = get_single_point_from_which_camera(center_point, data_points[i], camera_points)
+    for i in range(len(data_points_mapping)):
+        cur_target_camera_index = get_single_point_from_which_camera(center_point, data_points_mapping[i],
+                                                                     camera_points)
         data_points[i].append(cur_target_camera_index)  # 将找到的相机添加在当前数据后面
         camera_index_count[cur_target_camera_index] += 1
     print("每个相机出现的次数为：", camera_index_count)  # 分别为38, 49, 51, 36, 40, 42
-    return data_points
+    return data_points  # 这里返回的应该是源数据 而不是映射数据
 
 
 # 判断mesh上单一顶点来自哪个摄像机拍摄（与哪个摄像机最近）
