@@ -1,5 +1,5 @@
 import numpy as np
-import import_finger_data as ifd
+import process_finger_data as pfd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 
@@ -10,10 +10,10 @@ a = np.mat([[0.574322111, 0.771054881, 0.275006333, 0.93847817],
 a2 = a.I
 print(a2)
 
-origin = ifd.get_single_camera_origin(a)
+origin = pfd.get_single_camera_origin(a)
 # print(origin)
 
-camera_origins = ifd.get_all_camera_origin()
+camera_origins = pfd.get_all_camera_origin()
 print(camera_origins)
 camera_origins = np.array(camera_origins)
 
@@ -36,16 +36,16 @@ show_camera_origins_in_3d(camera_origins)
 
 # 验证平面函数正确性
 a = np.array([[0.52, 0.7, 0.2], [0, 2, 0], [2, 0, 0], [0, 2, 2], [0.5, -0.7, 0.1], [0, 0, 1]])
-plane = ifd.get_camera_plane(a)
+plane = pfd.get_camera_plane(a)
 print(plane)
 # 求出相机平面方程
-plane2 = ifd.get_camera_plane(camera_origins)
+plane2 = pfd.get_camera_plane(camera_origins)
 # print(plane2)
 
 # 验证映射函数的正确性
 point = [3, 7, 5]
 plane_para = [1, 2, 1, -16]
-point_ = ifd.get_mapping_point_in_camera_plane(point, plane_para)
+point_ = pfd.get_mapping_point_in_camera_plane(point, plane_para)
 print(point_)
 
 

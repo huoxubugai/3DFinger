@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import math
+import tools as tl
 
 
 # 根据obj文件获得mesh的顶点数据
@@ -49,34 +50,12 @@ def get_single_camera_origin(m2):
 
 
 def get_all_camera_origin():
-    # 6个相机的外参
-    a = np.mat([[0.574322111, 0.771054881, 0.275006333, 0.93847817],
-                [0.565423192, -0.130698104, -0.814379899, -0.36935905],
-                [-0.591988790, 0.623211341, -0.511035123, 4.78810628],
-                [0, 0, 0, 1]])
-    b = np.mat([[0.456023570, 0.727006744, 0.513326112, 1.72205846],
-                [-0.146061166, 0.630108915, -0.762645980, -0.30452329],
-                [-0.877900131, 0.272807532, 0.393531969, 5.53092307],
-                [0, 0, 0, 1]])
-    c = np.mat([[0.609183831, 0.528225460, 0.591500569, 1.59956459],
-                [-0.738350101, 0.649953779, 0.179997814, 0.5030131],
-                [-0.289368602, -0.546386263, 0.785956655, 5.58635091],
-                [0, 0, 0, 1]])
-    d = np.mat([[0.771746127, 0.478767298, 0.418556793, 0.955855425],
-                [-0.476877262, 0.000270229651, 0.878969854, 0.477556906],
-                [0.420708915, -0.877941799, 0.228521787, 4.61760675],
-                [0, 0, 0, 1]])
-    e = np.mat([[0.788882832, 0.555210653, 0.263448302, 0.71648894],
-                [0.159053746, -0.598545227, 0.785140445, 0.00777088],
-                [0.593604063, -0.577481378, -0.560490387, 4.30437514],
-                [0, 0, 0, 1]])
-    f = np.mat([[0.712321206, 0.689000523, 0.133704068, 1.13938413],
-                [0.694227260, -0.719684989, 0.0101009224, -0.28640104],
-                [0.103184351, 0.0856259076, -0.990969825, 4.49819911],
-                [0, 0, 0, 1]])
-
-    camera_origins = [get_single_camera_origin(a), get_single_camera_origin(b), get_single_camera_origin(c),
-                      get_single_camera_origin(d), get_single_camera_origin(e), get_single_camera_origin(f)]
+    camera_origins = [get_single_camera_origin(tl.camera_a_outer_para),
+                      get_single_camera_origin(tl.camera_b_outer_para),
+                      get_single_camera_origin(tl.camera_c_outer_para),
+                      get_single_camera_origin(tl.camera_d_outer_para),
+                      get_single_camera_origin(tl.camera_e_outer_para),
+                      get_single_camera_origin(tl.camera_f_outer_para)]
     # 将list转为array
     camera_origins = np.array(camera_origins)
     return camera_origins
@@ -193,7 +172,7 @@ def calculate_vector_product(vector1, vector2):
     return vector_product
 
 
-# 计算两个向量的夹角是否大于90度 即夹角的余弦值是否小于0
+# 计算两个向量的夹角的余弦
 # 公式为cos<a,b>=a.b/|a||b|. a.b=(x1x2+y1y2+z1z2) |a|=√(x1^2+y1^2+z1^2), |b|=√(x2^2+y2^2+z2^2).
 def calculate_cosine(vector1, vector2):
     a = vector1[0] * vector2[0] + vector1[1] * vector2[1] + vector1[2] * vector2[2]
@@ -203,6 +182,7 @@ def calculate_cosine(vector1, vector2):
     return res
 
 
+# 打印数据点
 def print_data_points(data_points):
     for li in data_points:
         print(li)
