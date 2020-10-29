@@ -2,6 +2,7 @@ import unittest
 from process_finger_data import *
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
+import tools as tl
 
 
 class Test(unittest.TestCase):
@@ -53,8 +54,8 @@ class Test(unittest.TestCase):
     def test_calculate_cosine(self):
         vector1 = [1, 0, 0]
         vector2 = [0, 0, 1]
-        res = calculate_cosine(vector1, vector2)
-        print(calculate_cosine([1, 2, 3], [3, 2, 1]))
+        res = tl.calculate_cosine(vector1, vector2)
+        print(tl.calculate_cosine([1, 2, 3], [3, 2, 1]))
         self.assertEqual(res, 0)
 
     def test_get_single_point_from_which_camera(self):
@@ -82,3 +83,18 @@ class Test(unittest.TestCase):
                           [-1.07692383, -1.37631717, 4.3081322]]
         count = get_point_from_which_camera2(cur_point, center_point_, camera_origins)
         self.assertEqual(count, 1)
+
+    # 计算六个相机的投影矩阵
+    def test_calculator_camera_projection_mat(self):
+        camera_a_projection_mat = tl.camera_a_inner_para * tl.camera_a_outer_para
+        print(camera_a_projection_mat, "\n")
+        camera_b_projection_mat = tl.camera_b_inner_para * tl.camera_b_outer_para
+        print(camera_b_projection_mat, "\n")
+        camera_c_projection_mat = tl.camera_c_inner_para * tl.camera_c_outer_para
+        print(camera_c_projection_mat, "\n")
+        camera_d_projection_mat = tl.camera_d_inner_para * tl.camera_d_outer_para
+        print(camera_d_projection_mat, "\n")
+        camera_e_projection_mat = tl.camera_e_inner_para * tl.camera_e_outer_para
+        print(camera_e_projection_mat, "\n")
+        camera_f_projection_mat = tl.camera_f_inner_para * tl.camera_f_outer_para
+        print(camera_f_projection_mat)

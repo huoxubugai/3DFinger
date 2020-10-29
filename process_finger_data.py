@@ -84,27 +84,10 @@ def get_camera_plane(camera_point):
     return plane_para
 
 
-# 点到空间平面的映射点
-def get_mapping_point_in_camera_plane(point, camera_plane_para):
-    a = camera_plane_para[0]
-    b = camera_plane_para[1]
-    c = camera_plane_para[2]
-    d = camera_plane_para[3]
-    x = point[0]
-    y = point[1]
-    z = point[2]
-    temp = a * a + b * b + c * c
-    x_ = ((b * b + c * c) * x - a * (b * y + c * z + d)) / temp
-    y_ = ((a * a + c * c) * y - b * (a * x + c * z + d)) / temp
-    z_ = ((a * a + b * b) * z - c * (a * x + b * y + d)) / temp
-    point_ = [x_, y_, z_]
-    return point_
-
-
 # 数据集所有点映射到平面
 def get_data_points_mapping(data_points, camera_plane_para):
     for i in range(len(data_points)):
-        cur_point_mapping = get_mapping_point_in_camera_plane(data_points[i], camera_plane_para)
+        cur_point_mapping = tl.get_mapping_point_in_camera_plane(data_points[i], camera_plane_para)
         data_points[i] = cur_point_mapping
     return data_points
 
@@ -132,7 +115,7 @@ def get_single_point_from_which_camera(center_point, cur_point, camera_points):
     target_camera_index = 0  # 初始化A相机是所求的相机下标，0代表A，1代表B 以此类推
     for i in range(len(camera_points)):
         camera_vector = calculate_vector(center_point, camera_points[i])
-        cur_cosine = calculate_cosine(cur_vector, camera_vector)
+        cur_cosine = tl.calculate_cosine(cur_vector, camera_vector)
         if cur_cosine > max_vector_cosine:
             max_vector_cosine = cur_cosine
             target_camera_index = i
@@ -149,10 +132,10 @@ def get_point_from_which_camera2(cur_point, center_point, camera_points):
             camera_vector2 = calculate_vector(center_point, camera_points[i + 1])
         else:
             camera_vector2 = calculate_vector(center_point, camera_points[0])  # F相机和A相机的情况
-        vector_product1 = calculate_vector_product(camera_vector1, cur_vector)
-        vector_product2 = calculate_vector_product(camera_vector2, cur_vector)
+        vector_product1 = tl.calculate_vector_product(camera_vector1, cur_vector)
+        vector_product2 = tl.calculate_vector_product(camera_vector2, cur_vector)
         # 判断计算出的两个向量积的夹角
-        if calculate_cosine(vector_product1, vector_product2) <= 0:
+        if tl.calculate_cosine(vector_product1, vector_product2) <= 0:
             count += 1  # 只是判断是否存在一个点的值小于0
     return count
 
@@ -161,28 +144,3 @@ def get_point_from_which_camera2(cur_point, center_point, camera_points):
 def calculate_vector(from_point, to_point):
     vector = [to_point[0] - from_point[0], to_point[1] - from_point[1], to_point[2] - from_point[2]]
     return vector
-
-
-# 计算两个向量的向量积
-# AB=(x1,y1,z1)  CD=(x2,y2,z2) cross(AB,CD)=(y1*z2-y2z1,z1x2-z2x1,x1y2-x2y1)
-def calculate_vector_product(vector1, vector2):
-    vector_product = [vector1[1] * vector2[2] - vector1[2] * vector2[1],
-                      vector1[2] * vector2[0] - vector1[0] * vector2[2],
-                      vector1[0] * vector2[1] - vector1[1] * vector2[0]]
-    return vector_product
-
-
-# 计算两个向量的夹角的余弦
-# 公式为cos<a,b>=a.b/|a||b|. a.b=(x1x2+y1y2+z1z2) |a|=√(x1^2+y1^2+z1^2), |b|=√(x2^2+y2^2+z2^2).
-def calculate_cosine(vector1, vector2):
-    a = vector1[0] * vector2[0] + vector1[1] * vector2[1] + vector1[2] * vector2[2]
-    b = math.sqrt(vector1[0] * vector1[0] + vector1[1] * vector1[1] + vector1[2] * vector1[2])
-    c = math.sqrt(vector2[0] * vector2[0] + vector2[1] * vector2[1] + vector2[2] * vector2[2])
-    res = a / (b * c)
-    return res
-
-
-# 打印数据点
-def print_data_points(data_points):
-    for li in data_points:
-        print(li)
