@@ -3,6 +3,7 @@ from process_finger_data import *
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 import tools as tl
+from scipy import misc
 
 
 class Test(unittest.TestCase):
@@ -98,3 +99,16 @@ class Test(unittest.TestCase):
         print(camera_e_projection_mat, "\n")
         camera_f_projection_mat = tl.camera_f_inner_para * tl.camera_f_outer_para
         print(camera_f_projection_mat)
+
+    # 测试读取uv数据
+    def test_read_uv_points(self):
+        file_path = 'LFMB_Visual_Hull_Meshes256/001_1_2_01'
+        suffix = ".txt"
+        uv_points = read_uv_points(file_path + suffix)
+        tl.print_data_points(uv_points)
+
+    # 测试读取位图
+    def test_read_bmp(self):
+        file_path = 'images/001_1_2_01_A.bmp'
+        # todo
+        pass

@@ -2,6 +2,8 @@
 import numpy as np
 import math
 
+# 相机索引对应相机名称
+camera_index_to_name = ['A', 'B', 'C', 'D', 'E', 'F']
 # 6个相机的外参
 camera_a_outer_para = np.mat([[0.574322111, 0.771054881, 0.275006333, 0.93847817],
                               [0.565423192, -0.130698104, -0.814379899, -0.36935905],
@@ -140,5 +142,3 @@ def get_mapping_point_in_camera_plane(point, camera_plane_para):
     z_ = ((a * a + b * b) * z - c * (a * x + b * y + d)) / temp
     point_ = [x_, y_, z_]
     return point_
-
-

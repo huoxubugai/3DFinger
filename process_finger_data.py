@@ -5,7 +5,7 @@ import tools as tl
 
 
 # 根据obj文件获得mesh的顶点数据
-def get_mesh_point(obj_file_path):
+def read_mesh_point(obj_file_path):
     with open(obj_file_path) as file:
         points = []
         while 1:
@@ -24,6 +24,23 @@ def get_mesh_point(obj_file_path):
     # points原本为列表，需要转变为矩阵，方便处理
     # points = np.array(points)
     return points
+
+
+# 读取已处理好的txt数据（含uv）
+def read_uv_points(txt_file_path):
+    with open(txt_file_path) as file:
+        uv_points = []
+        while 1:
+            line = file.readline()
+            if not line:
+                break
+            str = line.split(" ")
+            if str[0]:
+                cur = [float(str[3]), float(str[4]), float(str[5])]
+                uv_points.append(cur)
+            else:
+                break
+    return uv_points
 
 
 # 获得mesh的中心点数据
