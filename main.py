@@ -14,7 +14,7 @@ if __name__ == '__main__':
         uv_points = pfd.read_uv_points(uv_file_path)
         tl.print_data_points(uv_points)
         uv_points_contain_gray = tm.mapping_points_gray(uv_points, file_path)
-
+        tl.print_data_points(uv_points_contain_gray)
     else:
         # todo 文件读取异常处理
         # 拿到mesh所有顶点数据

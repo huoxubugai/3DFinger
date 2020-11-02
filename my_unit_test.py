@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 import tools as tl
 from scipy import misc
-
+import matplotlib.image as mpimg
+import read_24bit_bmp as rbm
 
 class Test(unittest.TestCase):
 
@@ -48,7 +49,7 @@ class Test(unittest.TestCase):
     def test_calculate_vector_product(self):
         vector1 = [1, 2, 3]
         vector2 = [3, 2, 1]
-        vector_product = calculate_vector_product(vector1, vector2)
+        vector_product = tl.calculate_vector_product(vector1, vector2)
         self.assertEqual(vector_product, [-4, 8, -4])
 
     # 测试计算向量夹角余弦值函数
@@ -111,4 +112,6 @@ class Test(unittest.TestCase):
     def test_read_bmp(self):
         file_path = 'images/001_1_2_01_A.bmp'
         # todo
-        pass
+        img = rbm.read_rows(file_path)
+        plt.imshow(img, cmap="gray")
+        plt.show()

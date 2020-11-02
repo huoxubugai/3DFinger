@@ -49,4 +49,4 @@ point_ = pfd.get_mapping_point_in_camera_plane(point, plane_para)
 print(point_)
 
 
-# 验证
+# 验证读取图片
