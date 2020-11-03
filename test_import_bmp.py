@@ -3,6 +3,7 @@ import struct
 import matplotlib.pyplot as plt
 
 
+# 无用的代码
 def main():
     # '先将位图打开'
     f = open('images/001_1_2_01_A.bmp', 'rb')  # 打开对应的文件
@@ -25,7 +26,7 @@ def main():
     f_bitcount, = struct.unpack('i', file_bitcount_byte)
     print("类型:", f_type, "大小:", f_size, "位图数据偏移量:", f_ofset, "宽度:", f_wide, "高度:", f_height, "位图:", f_bitcount)
 
-   #'然后来读取颜色表' 24位无颜色表
+    # '然后来读取颜色表' 24位无颜色表
     # color_table = np.empty(shape=[256, 4], dtype=int)
     # f.seek(54)  # 跳过文件信息头和位图信息头
     # for i in range(0, 256):
@@ -48,7 +49,7 @@ def main():
         for x in range(0, f_wide):
             cout = cout + 1
             index = struct.unpack('B', f.read(1))[0]
-            img[f_height - y - 1, x] = color_table[index]
+            # img[f_height - y - 1, x] = color_table[index]
         while cout % 4 != 0:
             f.read(1)
             cout = cout + 1

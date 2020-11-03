@@ -129,7 +129,7 @@ class Test(unittest.TestCase):
         plt.imshow(img, cmap="gray")
         plt.show()
 
-    # todo 测试uv和像素矩阵下标的对应关系
+
 
     def test_write_gray_to_bmp(self):
         # 此时不需要关闭文件，a+ 可读可写（末尾追加再写），文件不存在就创建，r+可读可写不存在报错
