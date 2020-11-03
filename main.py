@@ -5,21 +5,23 @@ import tools as tl
 import os
 
 if __name__ == '__main__':
+    # todo 遍历文件夹下的所有mesh 操作每一个
     file_path = 'LFMB_Visual_Hull_Meshes256/001_1_2_01'
-    suffix = '.obj'
+    obj_suffix = '.obj'
     uv_file_path = file_path + '.txt'
     # 先判断是否有生成的含像素uv的txt数据文件，如果有，直接读取txt，否则进行数据处理生成含uv的txt
     if os.path.exists(uv_file_path):
         # 读取uv文件
         uv_points = pfd.read_uv_points(uv_file_path)
         tl.print_data_points(uv_points)
-        uv_points_contain_gray = tm.mapping_points_gray(uv_points, file_path)
-        tl.print_data_points(uv_points_contain_gray)
+        points_gray = tm.mapping_points_gray(uv_points, file_path)
+        tl.print_data_points(points_gray)
         # 拿到灰度值list 写入到obj文件中
+        tm.write_gray_to_obj(points_gray, file_path)
     else:
         # todo 文件读取异常处理
         # 拿到mesh所有顶点数据
-        data_points = pfd.read_mesh_point(file_path + suffix)  # 数据点的数据结构选择list而不是数组,方便后续改动
+        data_points = pfd.read_mesh_point(file_path + obj_suffix)  # 数据点的数据结构选择list而不是数组,方便后续改动
         print("原始数据点为：", data_points)
         # 求出所有顶点对应的中心点O
         center_point = pfd.get_center_point(data_points)
@@ -61,3 +63,10 @@ if __name__ == '__main__':
 
         # 将这些数据写入文件  以后处理直接从文件中读取
         np.savetxt(file_path + ".txt", uv_for_points, fmt='%.7f')
+        # todo 纹理映射
+        uv_points = pfd.read_uv_points(uv_file_path)
+        tl.print_data_points(uv_points)
+        points_gray = tm.mapping_points_gray(uv_points, file_path)
+        tl.print_data_points(points_gray)
+        # 拿到灰度值list 写入到obj文件中
+        tm.write_gray_to_obj(points_gray, file_path)

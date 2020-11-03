@@ -72,6 +72,20 @@ def get_pic_gray(pic_file_path, u, v):
     # cur_img = bmp.read_rows(pic_file_path) # 用自己写的函数去读取
     cur_img = cv2.imread(pic_file_path, cv2.IMREAD_GRAYSCALE)  # 用opencv去读取bmp 直接拿到灰度值
     # np.savetxt(pic_file_path + '.txt', cur_img, fmt='%d')
-    gray = cur_img[v-1][u-1]  # todo 注意这里u，v和像素矩阵的索引是要反过来的，在图像坐标系中，u为横坐标，v为纵坐标，这里是v-1,u-1还是v u？
+    gray = cur_img[v - 1][u - 1]  # todo 注意这里u，v和像素矩阵的索引是要反过来的，在图像坐标系中，u为横坐标，v为纵坐标，这里是v-1,u-1还是v u？
     # 出现了错误：IndexError: index 1280 is out of bounds for axis 0 with size 1280,说明这里需要减一
     return gray
+
+
+# 根据灰度list和obj文件路径，将灰度值写入到新的obj文件中，完成纹理映射
+def write_gray_to_obj(points_gray, obj_file_path):
+    lines = []
+    with open(obj_file_path + '.obj', 'r') as f:
+        for line, gray in zip(f, points_gray):
+            line = line[0:-1] + " " + str(gray) + '\n'
+            print(line)
+            lines.append(line)
+        for line in f:  # 写入剩下的数据
+            lines.append(line)
+    with open(obj_file_path + '_new.obj', 'w+') as f_new:
+        f_new.writelines(lines)

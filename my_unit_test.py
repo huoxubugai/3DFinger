@@ -128,4 +128,15 @@ class Test(unittest.TestCase):
         print(time.time() - start)
         plt.imshow(img, cmap="gray")
         plt.show()
+
     # todo 测试uv和像素矩阵下标的对应关系
+
+    def test_write_gray_to_bmp(self):
+        # 此时不需要关闭文件，a+ 可读可写（末尾追加再写），文件不存在就创建，r+可读可写不存在报错
+        fp = open("LFMB_Visual_Hull_Meshes256/001_1_2_01.txt", "a+", encoding="utf-8")
+        line = fp.readline()
+        fp.write("hello python1")  # \n用来换行
+        fp.seek(0, 0)
+        data = fp.read()
+        fp.close()
+        print(data)
