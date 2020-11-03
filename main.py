@@ -7,14 +7,15 @@ import os
 if __name__ == '__main__':
     file_path = 'LFMB_Visual_Hull_Meshes256/001_1_2_01'
     suffix = '.obj'
-    # 先判断是否有生成的txt数据文件，如果有，直接读取txt，否则进行数据处理生成txt
     uv_file_path = file_path + '.txt'
+    # 先判断是否有生成的含像素uv的txt数据文件，如果有，直接读取txt，否则进行数据处理生成含uv的txt
     if os.path.exists(uv_file_path):
         # 读取uv文件
         uv_points = pfd.read_uv_points(uv_file_path)
         tl.print_data_points(uv_points)
         uv_points_contain_gray = tm.mapping_points_gray(uv_points, file_path)
         tl.print_data_points(uv_points_contain_gray)
+        # 拿到灰度值list 写入到obj文件中
     else:
         # todo 文件读取异常处理
         # 拿到mesh所有顶点数据

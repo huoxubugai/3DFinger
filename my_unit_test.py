@@ -6,6 +6,9 @@ import tools as tl
 from scipy import misc
 import matplotlib.image as mpimg
 import read_24bit_bmp as rbm
+import cv2
+import time
+
 
 class Test(unittest.TestCase):
 
@@ -108,10 +111,21 @@ class Test(unittest.TestCase):
         uv_points = read_uv_points(file_path + suffix)
         tl.print_data_points(uv_points)
 
-    # 测试读取位图
+    # 测试用手写的函数读取位图
     def test_read_bmp(self):
+        start = time.time()
         file_path = 'images/001_1_2_01_A.bmp'
-        # todo
         img = rbm.read_rows(file_path)
+        print(time.time() - start)
         plt.imshow(img, cmap="gray")
         plt.show()
+
+    # 测试用cv内置库去读取位图
+    def test_read_bmp2(self):
+        start = time.time()
+        file_path = 'images/001_1_2_01_A.bmp'
+        img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+        print(time.time() - start)
+        plt.imshow(img, cmap="gray")
+        plt.show()
+    # todo 测试uv和像素矩阵下标的对应关系
