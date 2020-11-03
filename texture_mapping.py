@@ -59,9 +59,8 @@ def mapping_single_point_gray(point, pic_path_prefix):
     v = round(point[2])
     # 打开图片，根据uv获取灰度值
     gray = get_pic_gray(pic_file_path, u, v)
-    # point.append(gray)  # todo 这里的point应该换成原始obj数据
+    # point.append(gray)
     return gray
-
 
 # 根据图片路径和像素u,v获取像素点的灰度值
 def get_pic_gray(pic_file_path, u, v):
@@ -72,7 +71,7 @@ def get_pic_gray(pic_file_path, u, v):
     # cur_img = bmp.read_rows(pic_file_path) # 用自己写的函数去读取
     cur_img = cv2.imread(pic_file_path, cv2.IMREAD_GRAYSCALE)  # 用opencv去读取bmp 直接拿到灰度值
     # np.savetxt(pic_file_path + '.txt', cur_img, fmt='%d')
-    gray = cur_img[v - 1][u - 1]  # todo 注意这里u，v和像素矩阵的索引是要反过来的，在图像坐标系中，u为横坐标，v为纵坐标，这里是v-1,u-1还是v u？
+    gray = cur_img[v - 1][u - 1]  # 注意这里u，v和像素矩阵的索引是要反过来的，在图像坐标系中，u为横坐标，v为纵坐标，这里是v-1,u-1还是v u？
     # 出现了错误：IndexError: index 1280 is out of bounds for axis 0 with size 1280,说明这里需要减一
     return gray
 
