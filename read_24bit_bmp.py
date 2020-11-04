@@ -74,7 +74,7 @@ def read_rows(path):
 #     return sub_pixels
 
 
-# rows = read_rows("images/001_1_2_01_A.bmp")
+rows = read_rows("images/001_1_2_01_A.bmp")
 # plt.imshow(rows, cmap="gray")
 # plt.show()
 

@@ -62,15 +62,11 @@ def mapping_single_point_gray(point, pic_path_prefix):
     # point.append(gray)
     return gray
 
+
 # 根据图片路径和像素u,v获取像素点的灰度值
 def get_pic_gray(pic_file_path, u, v):
-    # if os.path.exists(pic_file_path + '.txt'):
-    #     # todo 1、写入的txt文件为什么会后面缺失0？  2、读取bmp的灰度txt文件到对应的list中，预加载以节省时间
-    #     cur_img = pfd.read_uv_points(pic_file_path + '.txt')
-    # else:
-    # cur_img = bmp.read_rows(pic_file_path) # 用自己写的函数去读取
-    cur_img = cv2.imread(pic_file_path, cv2.IMREAD_GRAYSCALE)  # 用opencv去读取bmp 直接拿到灰度值
-    # np.savetxt(pic_file_path + '.txt', cur_img, fmt='%d')
+    # cur_img = cv2.imread(pic_file_path, cv2.IMREAD_GRAYSCALE)  # 用opencv去读取bmp 直接拿到灰度值
+    cur_img = cv2.imread(pic_file_path)
     gray = cur_img[v - 1][u - 1]  # 注意这里u，v和像素矩阵的索引是要反过来的，在图像坐标系中，u为横坐标，v为纵坐标，这里是v-1,u-1还是v u？
     # 出现了错误：IndexError: index 1280 is out of bounds for axis 0 with size 1280,说明这里需要减一
     return gray
@@ -81,8 +77,9 @@ def write_gray_to_obj(points_gray, obj_file_path):
     lines = []
     with open(obj_file_path + '.obj', 'r') as f:
         for line, gray in zip(f, points_gray):
-            line = line[0:-1] + " " + str(gray) + '\n'
-            print(line)
+            # line = line[0:-1] + " " + str(gray) + '\n'
+            line = line[0:-1] + " " + str(gray[0]) + " " + str(gray[1]) + " " + str(gray[2]) + '\n'
+            #print(line)
             lines.append(line)
         for line in f:  # 写入剩下的数据
             lines.append(line)

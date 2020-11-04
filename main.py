@@ -3,6 +3,7 @@ import numpy as np
 import texture_mapping as tm
 import tools as tl
 import os
+import time
 
 if __name__ == '__main__':
     # todo 遍历文件夹下的所有mesh 操作每一个
@@ -13,9 +14,11 @@ if __name__ == '__main__':
     if os.path.exists(uv_file_path):
         # 读取uv文件
         uv_points = pfd.read_uv_points(uv_file_path)
-        tl.print_data_points(uv_points)
+        # tl.print_data_points(uv_points)
+        start = time.time()
         points_gray = tm.mapping_points_gray(uv_points, file_path)
-        tl.print_data_points(points_gray)
+        print(time.time() - start)
+        # tl.print_data_points(points_gray)
         # 拿到灰度值list 写入到obj文件中
         tm.write_gray_to_obj(points_gray, file_path)
     else:
