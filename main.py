@@ -1,4 +1,4 @@
-from process import process_finger_data as pfd, texture_mapping as tm
+from process import process_finger_data as pfd, points_texture_mapping as tm
 import numpy as np
 from tool import tools as tl
 import os
@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
         # 将这些数据写入文件  以后处理直接从文件中读取
         np.savetxt(file_path + ".txt", uv_for_points, fmt='%.7f')
-        # todo 纹理映射
+        # todo 点的纹理映射
         uv_points = pfd.read_uv_points(uv_file_path)
         tl.print_data_points(uv_points)
         points_gray = tm.mapping_points_gray(uv_points, file_path)
