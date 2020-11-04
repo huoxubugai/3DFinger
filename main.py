@@ -1,13 +1,13 @@
-import process_finger_data as pfd
+from process import process_finger_data as pfd, texture_mapping as tm
 import numpy as np
-import texture_mapping as tm
-import tools as tl
+from tool import tools as tl
 import os
 import time
 
+'通过点进行纹理映射'
 if __name__ == '__main__':
     # todo 遍历文件夹下的所有mesh 操作每一个
-    file_path = 'LFMB_Visual_Hull_Meshes256/001_1_2_01'
+    file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/002_1_2_01'
     obj_suffix = '.obj'
     uv_file_path = file_path + '.txt'
     # 先判断是否有生成的含像素uv的txt数据文件，如果有，直接读取txt，否则进行数据处理生成含uv的txt
@@ -16,7 +16,7 @@ if __name__ == '__main__':
         uv_points = pfd.read_uv_points(uv_file_path)
         # tl.print_data_points(uv_points)
         start = time.time()
-        points_gray = tm.mapping_points_gray(uv_points, file_path)
+        points_gray = tm.mapping_points_gray(uv_points, file_path)  # 拿到所有对应点的灰度值（rgb）
         print(time.time() - start)
         # tl.print_data_points(points_gray)
         # 拿到灰度值list 写入到obj文件中

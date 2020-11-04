@@ -1,7 +1,6 @@
 import numpy as np
-import process_finger_data as pfd
+from process import process_finger_data as pfd
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
 
 a = np.mat([[0.574322111, 0.771054881, 0.275006333, 0.93847817],
             [0.565423192, -0.130698104, -0.814379899, -0.36935905],

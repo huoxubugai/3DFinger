@@ -1,11 +1,8 @@
 import unittest
-from process_finger_data import *
+from process.process_finger_data import *
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
-import tools as tl
-from scipy import misc
-import matplotlib.image as mpimg
-import read_24bit_bmp as rbm
+from tool import tools as tl
+from tool import read_24bit_bmp as rbm
 import cv2
 import time
 
@@ -106,7 +103,7 @@ class Test(unittest.TestCase):
 
     # 测试读取uv数据
     def test_read_uv_points(self):
-        file_path = 'LFMB_Visual_Hull_Meshes256/001_1_2_01'
+        file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01'
         suffix = ".txt"
         uv_points = read_uv_points(file_path + suffix)
         tl.print_data_points(uv_points)
@@ -114,7 +111,7 @@ class Test(unittest.TestCase):
     # 测试用手写的函数读取位图
     def test_read_bmp(self):
         start = time.time()
-        file_path = 'images/001_1_2_01_A.bmp'
+        file_path = '../outer_files/images/001_1_2_01_A.bmp'
         img = rbm.read_rows(file_path)
         print(time.time() - start)
         plt.imshow(img, cmap="gray")
@@ -123,20 +120,24 @@ class Test(unittest.TestCase):
     # 测试用cv内置库去读取位图
     def test_read_bmp2(self):
         start = time.time()
-        file_path = 'images/001_1_2_01_A.bmp'
+        file_path = '../outer_files/images/001_1_2_01_A.bmp'
         img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
         print(time.time() - start)
         plt.imshow(img, cmap="gray")
         plt.show()
 
-
-
     def test_write_gray_to_bmp(self):
         # 此时不需要关闭文件，a+ 可读可写（末尾追加再写），文件不存在就创建，r+可读可写不存在报错
-        fp = open("LFMB_Visual_Hull_Meshes256/001_1_2_01.txt", "a+", encoding="utf-8")
+        fp = open("../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01.txt", "a+", encoding="utf-8")
         line = fp.readline()
         fp.write("hello python1")  # \n用来换行
         fp.seek(0, 0)
         data = fp.read()
         fp.close()
         print(data)
+
+    # 测试三维mesh与uv map（png）的纹理映射关系
+    def test_uv_map_relation_mesh(self):
+        uv_map_file = '../outer_files/Mesh_UVmap/saved_spot.png'
+        img = cv2.imread(uv_map_file)
+        pass

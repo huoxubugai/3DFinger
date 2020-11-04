@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # 无用的代码
 def main():
     # '先将位图打开'
-    f = open('images/001_1_2_01_A.bmp', 'rb')  # 打开对应的文件
+    f = open('../outer_files/images/001_1_2_01_A.bmp', 'rb')  # 打开对应的文件
     '下面部分用来读取BMP位图的基础信息'
     f_type = str(f.read(2))  # 这个就可以用来读取 文件类型 需要读取2个字节
     file_size_byte = f.read(4)  # 这个可以用来读取文件的大小 需要读取4个字节

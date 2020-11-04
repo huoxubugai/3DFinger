@@ -1,8 +1,5 @@
 import numpy as np
-import process_finger_data as pfd
-import tools as tl
-import read_24bit_bmp as bmp
-import os
+from tool import tools as tl
 import cv2
 
 
@@ -41,7 +38,7 @@ def get_uv_for_single_point(point_data):
 # 获取所有数据点的灰度值
 def mapping_points_gray(uv_points, file_path):
     path_str = file_path.split("/")
-    picture_path_prefix = 'images/' + path_str[1]
+    picture_path_prefix = 'outer_files/images/' + path_str[2] # todo 注意这里的索引会随着文件路径改变而改变
     points_gray = []
     for i in range(len(uv_points)):
         cur_gray = mapping_single_point_gray(uv_points[i], picture_path_prefix)

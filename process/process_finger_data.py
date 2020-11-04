@@ -1,7 +1,5 @@
-import os
 import numpy as np
-import math
-import tools as tl
+from tool import tools as tl
 
 
 # 根据obj文件获得mesh的顶点数据
