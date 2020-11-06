@@ -108,10 +108,17 @@ class Test(unittest.TestCase):
         uv_points = read_uv_points(file_path + suffix)
         tl.print_data_points(uv_points)
 
+    # 测试读取faces数据
+    def test_read_mesh_faces(self):
+        file_path = '../outer_files/LFMB_Visual_Hull_Meshes256/002_1_2_01'
+        suffix = ".obj"
+        faces_point = read_mesh_faces(file_path+suffix)
+        tl.print_data_points(faces_point)
+
     # 测试用手写的函数读取位图
     def test_read_bmp(self):
         start = time.time()
-        file_path = '../outer_files/images/001_1_2_01_A.bmp'
+        file_path = '../outer_files/images/00_1_2_01_A.bmp'
         img = rbm.read_rows(file_path)
         print(time.time() - start)
         plt.imshow(img, cmap="gray")
@@ -120,7 +127,7 @@ class Test(unittest.TestCase):
     # 测试用cv内置库去读取位图
     def test_read_bmp2(self):
         start = time.time()
-        file_path = '../outer_files/images/001_1_2_01_A.bmp'
+        file_path = '../outer_files/images/003_1_2_01_A.bmp'
         img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
         print(time.time() - start)
         plt.imshow(img, cmap="gray")

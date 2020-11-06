@@ -3,7 +3,7 @@ from tool import tools as tl
 
 
 # 根据obj文件获得mesh的顶点数据
-def read_mesh_point(obj_file_path):
+def read_mesh_points(obj_file_path):
     with open(obj_file_path) as file:
         points = []
         while 1:
@@ -15,13 +15,31 @@ def read_mesh_point(obj_file_path):
                 cur = [float(strs[1]), float(strs[2]), float(strs[3])]
                 points.append(cur)
                 # points.append((float(strs[1]), float(strs[2]), float(strs[3])))
+
             else:
                 break
-            # if strs[0] == "vt":
-            #     break
-    # points原本为列表，需要转变为矩阵，方便处理
-    # points = np.array(points)
+
     return points
+
+
+# 根据obj文件获得mesh的面数据
+def read_mesh_faces(obj_file_path):
+    with open(obj_file_path) as file:
+        faces = []
+        while 1:
+            line = file.readline()
+            if not line:
+                break
+            strs = line.split(" ")
+            if strs[0] == "v" or strs[0] == "\n":
+                continue
+            elif strs[0] == "f":
+                cur = [int(strs[1]), int(strs[2]), int(strs[3])]
+                faces.append(cur)
+            else:
+                break
+
+    return faces
 
 
 # 读取已处理好的txt数据（含uv）

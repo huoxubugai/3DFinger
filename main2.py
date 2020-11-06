@@ -6,19 +6,20 @@ from process import points_texture_mapping as tm
 
 '通过面进行纹理映射'
 if __name__ == '__main__':
-    file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/003_1_2_01'
+    file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/002_1_2_01'
     obj_suffix = '.obj'
     uv_file_path = file_path + '.txt'
     # 先判断是否有生成的含像素uv的txt数据文件，如果有，直接读取txt，否则进行数据处理生成含uv的txt
     if os.path.exists(uv_file_path):
         # 读取uv文件
         uv_points = pfd.read_uv_points(uv_file_path)
-        faces_texture = ftm.mapping_faces_gray(uv_points, file_path)  # 拿到所有面的纹理区域
+        faces_point = pfd.read_mesh_faces(file_path+obj_suffix)  # 读取obj  face的顶点数据
+        faces_texture = ftm.mapping_faces_gray(uv_points, faces_point, file_path)  # 拿到所有面的纹理区域
         ftm.write_gray_to_obj(faces_texture, file_path)
     else:
         # todo 文件读取异常处理
         # 拿到mesh所有顶点数据
-        data_points = pfd.read_mesh_point(file_path + obj_suffix)  # 数据点的数据结构选择list而不是数组,方便后续改动
+        data_points = pfd.read_mesh_points(file_path + obj_suffix)  # 数据点的数据结构选择list而不是数组,方便后续改动
         print("原始数据点为：", data_points)
         # 求出所有顶点对应的中心点O
         center_point = pfd.get_center_point(data_points)
@@ -62,5 +63,6 @@ if __name__ == '__main__':
         np.savetxt(file_path + ".txt", uv_for_points, fmt='%.7f')
         # todo 面的纹理映射
         uv_points = pfd.read_uv_points(uv_file_path)
-        faces_texture = ftm.mapping_faces_gray(uv_points, file_path)  # 拿到所有面的纹理区域
+        faces_point = pfd.read_mesh_faces(uv_file_path)  # 读取obj  face的顶点数据
+        faces_texture = ftm.mapping_faces_gray(uv_points, faces_point, file_path)  # 拿到所有面的纹理区域
         ftm.write_gray_to_obj(faces_texture, file_path)

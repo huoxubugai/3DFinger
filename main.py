@@ -24,7 +24,7 @@ if __name__ == '__main__':
     else:
         # todo 文件读取异常处理
         # 拿到mesh所有顶点数据
-        data_points = pfd.read_mesh_point(file_path + obj_suffix)  # 数据点的数据结构选择list而不是数组,方便后续改动
+        data_points = pfd.read_mesh_points(file_path + obj_suffix)  # 数据点的数据结构选择list而不是数组,方便后续改动
         print("原始数据点为：", data_points)
         # 求出所有顶点对应的中心点O
         center_point = pfd.get_center_point(data_points)
