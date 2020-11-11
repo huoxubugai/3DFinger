@@ -8,12 +8,12 @@ import cv2
 # 获取三维点在二维图像上的位置（u,v）
 def get_uv_for_points(data_points_contain_camera):
     for i in range(len(data_points_contain_camera)):
-        point_data_contain_uv = get_uv_for_single_point(data_points_contain_camera[i])
+        point_data_contain_uv = get_texture_for_single_point(data_points_contain_camera[i])
         data_points_contain_camera[i] = point_data_contain_uv
     return data_points_contain_camera
 
 
-def get_uv_for_single_point(point_data):
+def get_texture_for_single_point(point_data):
     # 获取相机下标索引,通过索引下标获得对应的投影矩阵
     camera_index = point_data[3]
     camera_projection_mat = tl.all_camera_projection_mat[camera_index]

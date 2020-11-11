@@ -54,15 +54,15 @@ if __name__ == '__main__':
         tl.print_data_points(data_points_contain_camera)
 
         # 得到每个点是由什么相机拍摄之后，进行纹理映射部分
-
         # 得到每个点对应二维图像上的u，v值
-        uv_for_points = tm.get_uv_for_points(data_points_contain_camera)
-        tl.print_data_points(uv_for_points)
+        # 这里和之前先后顺序不同，要从三角面片出发，得到面对应的相机，再将三角面片上的三个顶点投影到这个相机对应的bmp图片上，找到uv值
+        #uv_for_points = tm.get_uv_for_points(data_points_contain_camera)
+        #tl.print_data_points(uv_for_points)
 
         # 将这些数据写入文件  以后处理直接从文件中读取
-        np.savetxt(file_path + ".txt", uv_for_points, fmt='%.7f')
+        #np.savetxt(file_path + ".txt", uv_for_points, fmt='%.7f')
         # todo 面的纹理映射
-        uv_points = pfd.read_uv_points(uv_file_path)
-        faces_point = pfd.read_mesh_faces(uv_file_path)  # 读取obj  face的顶点数据
-        faces_texture = ftm.mapping_faces_gray(uv_points, faces_point, file_path)  # 拿到所有面的纹理区域
+        #uv_points = pfd.read_uv_points(uv_file_path)
+        faces_point = pfd.read_mesh_faces(file_path+obj_suffix)  # 读取obj  face的顶点数据
+        faces_texture = ftm.mapping_faces_gray(data_points_contain_camera, faces_point, file_path)  # 拿到所有面的纹理区域
         ftm.write_gray_to_obj(faces_texture, file_path)
