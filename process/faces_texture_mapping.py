@@ -1,6 +1,7 @@
 import numpy as np
 from tool import tools as tl
 import cv2
+import matplotlib.pyplot as plt
 
 
 # 面的纹理映射
@@ -10,8 +11,11 @@ def mapping_faces_gray(data_points_contain_camera, faces_point, file_path):
     # todo 考虑是否需要将这个写入本地文件
     # 拿到三角面片对应的相机后，对该三角面片做相应图片的映射，三维——》二维
     for face in faces_point_contain_camera:
-        get_texture_from_bmp(face, data_points_contain_camera)  # 会将所有三角面片对应点的纹理全放进哈希表中
-    # todo 遍历face，根据face的顶点，从哈希表中分别将不同的相机的纹理值取出，记住其中的最大最小值，对对应bmp做crop放进png中
+        get_texture_from_bmp(face, data_points_contain_camera)  # 会将所有三角面片对应点的纹理全放进哈希表中,同时对面片按相机分类
+    # todo 按不同相机遍历face，根据face的顶点，从哈希表中分别将不同的相机的纹理值取出，记住其中的最大最小值，对对应bmp做crop放进png中
+    # 根据全局变量bmp_crop_ranges，去对bmp图片做crop，然后放入uv map png图片中
+    crop_bmp_to_png(file_path)
+
     pass
 
 
@@ -32,6 +36,8 @@ def get_faces_belong_which_camera(data_points_contain_camera, faces_point):
 def get_texture_from_bmp(face, data_points_contain_camera):
     # 用face里面存储的点的索引，去data_points_contain_camera里拿到对应的数据点
     camera_index = face[3]
+    # 将face根据不同的相机放进全局变量
+    tl.faces_belong_camera[camera_index].append(face)
     for vertex_index in face[0:3]:  # 注意这里只有前三个才是顶点索引
         vertex_data = data_points_contain_camera[vertex_index - 1]
         get_texture_for_vertex(vertex_data, camera_index, vertex_index)
@@ -56,8 +62,80 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
         # uv 取整
         u = round(u)
         v = round(v)
+        # todo  uv 取整时不应该超过uv的应有范围，后续还是应该采用精度更高的做法，另外uv和像素矩阵的对应关系也应该确定是否是v-1.u-1
+        # 由于(u,v)只代表像素的列数与行数,而四舍五入存在误差，为了不超过uv的范围，将它强行归到1-1280范围，1-800范围
+        if u == 0:
+            u = 1
+        if v == 0:
+            v = 1
         # 根据相机索引和像素点下标拼接key值，然后将uv放到哈希表中
         tl.map_vertex_to_texture[key] = [u, v]
+        # 同时更新全局变量中的uv crop范围
+        tl.bmp_crop_ranges[camera_index][0] = min(u, tl.bmp_crop_ranges[camera_index][0])
+        tl.bmp_crop_ranges[camera_index][1] = min(v, tl.bmp_crop_ranges[camera_index][1])
+        tl.bmp_crop_ranges[camera_index][2] = max(u, tl.bmp_crop_ranges[camera_index][2])
+        tl.bmp_crop_ranges[camera_index][3] = max(v, tl.bmp_crop_ranges[camera_index][3])
+
+
+def crop_bmp_to_png(file_path):
+    # 初始化png大小，全0,png组成为A B C D E F 竖排摆放
+    # 计算各相机crop出的宽度和高度
+    calculate_crop_weight_and_height()
+    u_weight = max(tl.crops_weight_and_height[0][0], tl.crops_weight_and_height[1][0], tl.crops_weight_and_height[2][0],
+                   tl.crops_weight_and_height[3][0], tl.crops_weight_and_height[4][0], tl.crops_weight_and_height[5][0])
+    v_height = tl.crops_weight_and_height[0][1] + tl.crops_weight_and_height[1][1] + tl.crops_weight_and_height[2][1] + \
+               tl.crops_weight_and_height[3][1] + tl.crops_weight_and_height[4][1] + tl.crops_weight_and_height[5][1]
+    uv_map_png = np.zeros((v_height, u_weight), dtype=np.uint8)
+    for i in range(0, 6):
+        cur_crop_range = tl.bmp_crop_ranges[i]
+        cur_crop_bmp = crop_bmp(cur_crop_range, i, file_path)
+        # 将crop出的图放入png中
+        put_crop_into_png(cur_crop_bmp, uv_map_png, i)
+
+
+# 计算crop出的图片宽度和高度
+def calculate_crop_weight_and_height():
+    tl.crops_weight_and_height[0] = [tl.bmp_crop_ranges[0][2] - tl.bmp_crop_ranges[0][0],
+                                     tl.bmp_crop_ranges[0][3] - tl.bmp_crop_ranges[0][1]]
+    tl.crops_weight_and_height[1] = [tl.bmp_crop_ranges[1][2] - tl.bmp_crop_ranges[1][0],
+                                     tl.bmp_crop_ranges[1][3] - tl.bmp_crop_ranges[1][1]]
+    tl.crops_weight_and_height[2] = [tl.bmp_crop_ranges[2][2] - tl.bmp_crop_ranges[2][0],
+                                     tl.bmp_crop_ranges[2][3] - tl.bmp_crop_ranges[2][1]]
+    tl.crops_weight_and_height[3] = [tl.bmp_crop_ranges[3][2] - tl.bmp_crop_ranges[3][0],
+                                     tl.bmp_crop_ranges[3][3] - tl.bmp_crop_ranges[3][1]]
+    tl.crops_weight_and_height[4] = [tl.bmp_crop_ranges[4][2] - tl.bmp_crop_ranges[4][0],
+                                     tl.bmp_crop_ranges[4][3] - tl.bmp_crop_ranges[4][1]]
+    tl.crops_weight_and_height[5] = [tl.bmp_crop_ranges[5][2] - tl.bmp_crop_ranges[5][0],
+                                     tl.bmp_crop_ranges[5][3] - tl.bmp_crop_ranges[5][1]]
+
+
+def crop_bmp(crop_range, camera_index, file_path):
+    # 拼接bmp文件路径，拿到bmp，对其crop
+    path_str = file_path.split("/")
+    camera_name = tl.camera_index_to_name[camera_index]
+    pic_path_prefix = 'outer_files/images/' + path_str[2]  # todo 注意这里的索引会随着文件路径改变而改变
+    pic_file_path = pic_path_prefix + '_' + camera_name + '.bmp'  # 拼接文件名
+    cur_img = cv2.imread(pic_file_path, cv2.IMREAD_GRAYSCALE)
+    # 根据crop range进行crop
+    crop_img = cur_img[tl.bmp_crop_ranges[camera_index][1]:tl.bmp_crop_ranges[camera_index][3],
+               tl.bmp_crop_ranges[camera_index][0]:tl.bmp_crop_ranges[camera_index][2]]
+    # plt.imshow(crop_img, cmap="gray")
+    # plt.show()
+    # 将crop放入png
+    return crop_img
+
+
+def put_crop_into_png(crop_pic, uv_map_png, camera_index):
+    v_start = 0
+    crop_height = crop_pic.shape[0]
+    crop_wight = crop_pic.shape[1]
+    i = 0
+    while i < camera_index:
+        v_start += tl.crops_weight_and_height[i][1]  # 累积前面的高度
+        i += 1
+    uv_map_png[v_start:v_start + crop_height, 0:crop_wight] = crop_pic
+    plt.imshow(uv_map_png, cmap="gray")
+    plt.show()
 
 
 def write_gray_to_obj(points_gray, obj_file_path):

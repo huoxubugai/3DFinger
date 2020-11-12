@@ -100,8 +100,29 @@ camera_f_projection_mat = np.mat([[7.46729038e+02, 7.13841054e+02, -4.61241373e+
 
 # 六个相机组成的空间平面方程
 
-# 哈希表，存储顶点对应的像素信息
+# 哈希表，存储顶点对应的像素uv信息
 map_vertex_to_texture = dict()
+
+# 每个相机对应的三角面片 如faces_belong_camera_A=[[1,3,5],[2,3,5]...]
+# faces_belong_camera_A = []
+# faces_belong_camera_B = []
+# faces_belong_camera_C = []
+# faces_belong_camera_D = []
+# faces_belong_camera_E = []
+# faces_belong_camera_F = []
+
+# 所有相机对应的三角面片，A相机放在0索引，以此类推
+faces_belong_camera = [[], [], [], [], [], []]
+
+# 所有相机对应的bmp应该crop出的范围，[Umin,Vmin,Umax,Vmax],初始化时给相反的最大最小值,这里取的10000和-1，因为不可能有超过这个范围的了
+bmp_crop_ranges = [[10000, 10000, -1, -1], [10000, 10000, -1, -1],
+                   [10000, 10000, -1, -1], [10000, 10000, -1, -1],
+                   [10000, 10000, -1, -1], [10000, 10000, -1, -1]]
+# 提前计算出crop的宽度u_weight和高度v_height,先初始化为0
+crops_weight_and_height = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+
+
+# uvmap的png图
 
 
 # 打印数据点

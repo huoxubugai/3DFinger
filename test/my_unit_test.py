@@ -112,7 +112,7 @@ class Test(unittest.TestCase):
     def test_read_mesh_faces(self):
         file_path = '../outer_files/LFMB_Visual_Hull_Meshes256/002_1_2_01'
         suffix = ".obj"
-        faces_point = read_mesh_faces(file_path+suffix)
+        faces_point = read_mesh_faces(file_path + suffix)
         tl.print_data_points(faces_point)
 
     # 测试用手写的函数读取位图
@@ -148,3 +148,12 @@ class Test(unittest.TestCase):
         uv_map_file = '../outer_files/Mesh_UVmap/saved_spot.png'
         img = cv2.imread(uv_map_file)
         pass
+
+    # 测试uvmap空白png
+    def test_gene_uvmap_png(self):
+        uv_map_png = np.zeros((1280, 800), dtype=np.uint8)
+        crop_png = np.ones((300, 100), dtype=np.uint8)
+        uv_map_png[100:500, 200:400] = crop_png[0:, 0:]
+        plt.imshow(uv_map_png, cmap="gray")
+        plt.show()
+        # cv2.imshow('0', uv_map_png)
