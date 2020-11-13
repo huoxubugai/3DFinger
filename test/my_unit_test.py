@@ -87,7 +87,7 @@ class Test(unittest.TestCase):
         self.assertEqual(count, 1)
 
     # 计算六个相机的投影矩阵
-    def test_calculator_camera_projection_mat(self):
+    def test_calculate_camera_projection_mat(self):
         camera_a_projection_mat = tl.camera_a_inner_para * tl.camera_a_outer_para
         print(camera_a_projection_mat, "\n")
         camera_b_projection_mat = tl.camera_b_inner_para * tl.camera_b_outer_para
@@ -100,6 +100,21 @@ class Test(unittest.TestCase):
         print(camera_e_projection_mat, "\n")
         camera_f_projection_mat = tl.camera_f_inner_para * tl.camera_f_outer_para
         print(camera_f_projection_mat)
+
+    # 计算resize后的变化的投影矩阵
+    def test_calculate_camera_projection_mat_after_resize(self):
+        camera_a_projection_mat_resize = tl.camera_a_inner_para_resize * tl.camera_a_outer_para
+        print(camera_a_projection_mat_resize, "\n")
+        camera_b_projection_mat_resize = tl.camera_b_inner_para_resize * tl.camera_b_outer_para
+        print(camera_b_projection_mat_resize, "\n")
+        camera_c_projection_mat_resize = tl.camera_c_inner_para_resize * tl.camera_c_outer_para
+        print(camera_c_projection_mat_resize, "\n")
+        camera_d_projection_mat_resize = tl.camera_d_inner_para_resize * tl.camera_d_outer_para
+        print(camera_d_projection_mat_resize, "\n")
+        camera_e_projection_mat_resize = tl.camera_e_inner_para_resize * tl.camera_e_outer_para
+        print(camera_e_projection_mat_resize, "\n")
+        camera_f_projection_mat_resize = tl.camera_f_inner_para_resize * tl.camera_f_outer_para
+        print(camera_f_projection_mat_resize)
 
     # 测试读取uv数据
     def test_read_uv_points(self):
@@ -157,3 +172,14 @@ class Test(unittest.TestCase):
         plt.imshow(uv_map_png, cmap="gray")
         plt.show()
         # cv2.imshow('0', uv_map_png)
+
+    # 测试resize图像
+    def test_resize_bmp(self):
+        file_path = '../outer_files/images/001_1_2_01_F.bmp'
+        img = cv2.imread(file_path)
+        height, width = img.shape[:2]
+        resize_img = cv2.resize(img, (int(0.5 * width), int(0.5 * height)), interpolation=cv2.INTER_AREA)
+        cv2.imwrite('../outer_files/images/001_resize_F.bmp', resize_img)
+        # plt.imshow(img, cmap="gray")
+        plt.imshow(resize_img, cmap="gray")
+        plt.show()

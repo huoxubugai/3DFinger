@@ -80,12 +80,12 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
 def crop_bmp_to_png(file_path):
     # 初始化png大小，全0,png组成为A B C D E F 竖排摆放
     # 计算各相机crop出的宽度和高度
-    calculate_crop_weight_and_height()
-    u_weight = max(tl.crops_weight_and_height[0][0], tl.crops_weight_and_height[1][0], tl.crops_weight_and_height[2][0],
-                   tl.crops_weight_and_height[3][0], tl.crops_weight_and_height[4][0], tl.crops_weight_and_height[5][0])
-    v_height = tl.crops_weight_and_height[0][1] + tl.crops_weight_and_height[1][1] + tl.crops_weight_and_height[2][1] + \
-               tl.crops_weight_and_height[3][1] + tl.crops_weight_and_height[4][1] + tl.crops_weight_and_height[5][1]
-    uv_map_png = np.zeros((v_height, u_weight), dtype=np.uint8)
+    calculate_crop_width_and_height()
+    png_width = max(tl.crops_width_and_height[0][0], tl.crops_width_and_height[1][0], tl.crops_width_and_height[2][0],
+                    tl.crops_width_and_height[3][0], tl.crops_width_and_height[4][0], tl.crops_width_and_height[5][0])
+    png_height = tl.crops_width_and_height[0][1] + tl.crops_width_and_height[1][1] + tl.crops_width_and_height[2][1] + \
+                 tl.crops_width_and_height[3][1] + tl.crops_width_and_height[4][1] + tl.crops_width_and_height[5][1]
+    uv_map_png = np.zeros((png_height, png_width), dtype=np.uint8)
     for i in range(0, 6):
         cur_crop_range = tl.bmp_crop_ranges[i]
         cur_crop_bmp = crop_bmp(cur_crop_range, i, file_path)
@@ -94,19 +94,19 @@ def crop_bmp_to_png(file_path):
 
 
 # 计算crop出的图片宽度和高度
-def calculate_crop_weight_and_height():
-    tl.crops_weight_and_height[0] = [tl.bmp_crop_ranges[0][2] - tl.bmp_crop_ranges[0][0],
-                                     tl.bmp_crop_ranges[0][3] - tl.bmp_crop_ranges[0][1]]
-    tl.crops_weight_and_height[1] = [tl.bmp_crop_ranges[1][2] - tl.bmp_crop_ranges[1][0],
-                                     tl.bmp_crop_ranges[1][3] - tl.bmp_crop_ranges[1][1]]
-    tl.crops_weight_and_height[2] = [tl.bmp_crop_ranges[2][2] - tl.bmp_crop_ranges[2][0],
-                                     tl.bmp_crop_ranges[2][3] - tl.bmp_crop_ranges[2][1]]
-    tl.crops_weight_and_height[3] = [tl.bmp_crop_ranges[3][2] - tl.bmp_crop_ranges[3][0],
-                                     tl.bmp_crop_ranges[3][3] - tl.bmp_crop_ranges[3][1]]
-    tl.crops_weight_and_height[4] = [tl.bmp_crop_ranges[4][2] - tl.bmp_crop_ranges[4][0],
-                                     tl.bmp_crop_ranges[4][3] - tl.bmp_crop_ranges[4][1]]
-    tl.crops_weight_and_height[5] = [tl.bmp_crop_ranges[5][2] - tl.bmp_crop_ranges[5][0],
-                                     tl.bmp_crop_ranges[5][3] - tl.bmp_crop_ranges[5][1]]
+def calculate_crop_width_and_height():
+    tl.crops_width_and_height[0] = [tl.bmp_crop_ranges[0][2] - tl.bmp_crop_ranges[0][0],
+                                    tl.bmp_crop_ranges[0][3] - tl.bmp_crop_ranges[0][1]]
+    tl.crops_width_and_height[1] = [tl.bmp_crop_ranges[1][2] - tl.bmp_crop_ranges[1][0],
+                                    tl.bmp_crop_ranges[1][3] - tl.bmp_crop_ranges[1][1]]
+    tl.crops_width_and_height[2] = [tl.bmp_crop_ranges[2][2] - tl.bmp_crop_ranges[2][0],
+                                    tl.bmp_crop_ranges[2][3] - tl.bmp_crop_ranges[2][1]]
+    tl.crops_width_and_height[3] = [tl.bmp_crop_ranges[3][2] - tl.bmp_crop_ranges[3][0],
+                                    tl.bmp_crop_ranges[3][3] - tl.bmp_crop_ranges[3][1]]
+    tl.crops_width_and_height[4] = [tl.bmp_crop_ranges[4][2] - tl.bmp_crop_ranges[4][0],
+                                    tl.bmp_crop_ranges[4][3] - tl.bmp_crop_ranges[4][1]]
+    tl.crops_width_and_height[5] = [tl.bmp_crop_ranges[5][2] - tl.bmp_crop_ranges[5][0],
+                                    tl.bmp_crop_ranges[5][3] - tl.bmp_crop_ranges[5][1]]
 
 
 def crop_bmp(crop_range, camera_index, file_path):
@@ -131,7 +131,7 @@ def put_crop_into_png(crop_pic, uv_map_png, camera_index):
     crop_wight = crop_pic.shape[1]
     i = 0
     while i < camera_index:
-        v_start += tl.crops_weight_and_height[i][1]  # 累积前面的高度
+        v_start += tl.crops_width_and_height[i][1]  # 累积前面的高度
         i += 1
     uv_map_png[v_start:v_start + crop_height, 0:crop_wight] = crop_pic
     plt.imshow(uv_map_png, cmap="gray")

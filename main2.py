@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+"""
+@Time ： 2020/11/13 14:27
+@Auth ： 零分
+@File ：main2.py
+@IDE ：PyCharm
+@github:https://github.com/huoxubugai/3DFinger
+"""
+
 import os
 from process import process_finger_data as pfd, faces_texture_mapping as ftm
 from tool import tools as tl
@@ -45,7 +54,6 @@ if __name__ == '__main__':
         data_points_mapping = pfd.get_data_points_mapping(data_points, camera_plane_para)
         print("映射后的所有数据点：\n", data_points_mapping)
         # ifd.print_data_points(data_points_mapping)
-
         # 数据预处理完毕，寻找每个点对应的相机
         # 这里注意找到相机之后需要添加到源数据点上，而不是映射后的数据点
         data_points_contain_camera = pfd.get_data_points_from_which_camera(center_point_mapping, data_points_mapping,
@@ -54,10 +62,7 @@ if __name__ == '__main__':
         tl.print_data_points(data_points_contain_camera)
 
         # 得到每个点是由什么相机拍摄之后，进行纹理映射部分
-        # 得到每个点对应二维图像上的u，v值
         # 这里和之前先后顺序不同，要从三角面片出发，得到面对应的相机，再将三角面片上的三个顶点投影到这个相机对应的bmp图片上，找到uv值
-        #uv_for_points = tm.get_uv_for_points(data_points_contain_camera)
-        #tl.print_data_points(uv_for_points)
 
         # 将这些数据写入文件  以后处理直接从文件中读取
         #np.savetxt(file_path + ".txt", uv_for_points, fmt='%.7f')

@@ -1,13 +1,22 @@
+# -*- coding: utf-8 -*-
+"""
+@Time ： 2020/11/13 14:27
+@Auth ： 零分
+@File ：main.py
+@IDE ：PyCharm
+@github:https://github.com/huoxubugai/3DFinger
+"""
+
 from process import process_finger_data as pfd, points_texture_mapping as tm
 import numpy as np
 from tool import tools as tl
 import os
 import time
 
-'通过点进行纹理映射'
+'通过mesh顶点进行纹理映射'
 if __name__ == '__main__':
     # todo 遍历文件夹下的所有mesh 操作每一个
-    file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/002_1_2_01'
+    file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/0001_resize'
     obj_suffix = '.obj'
     uv_file_path = file_path + '.txt'
     # 先判断是否有生成的含像素uv的txt数据文件，如果有，直接读取txt，否则进行数据处理生成含uv的txt
@@ -50,23 +59,18 @@ if __name__ == '__main__':
         data_points_mapping = pfd.get_data_points_mapping(data_points, camera_plane_para)
         print("映射后的所有数据点：\n", data_points_mapping)
         # ifd.print_data_points(data_points_mapping)
-
         # 数据预处理完毕，寻找每个点对应的相机
         # 这里注意找到相机之后需要添加到源数据点上，而不是映射后的数据点
         data_points_contain_camera = pfd.get_data_points_from_which_camera(center_point_mapping, data_points_mapping,
                                                                            camera_point_mapping, data_points)
         print("获取所有数据点以及其来源的相机索引\n")
         tl.print_data_points(data_points_contain_camera)
-
         # 得到每个点是由什么相机拍摄之后，进行纹理映射部分
-
         # 得到每个点对应二维图像上的u，v值
         uv_for_points = tm.get_uv_for_points(data_points_contain_camera)
         tl.print_data_points(uv_for_points)
-
         # 将这些数据写入文件  以后处理直接从文件中读取
         np.savetxt(file_path + ".txt", uv_for_points, fmt='%.7f')
-        # todo 点的纹理映射
         uv_points = pfd.read_uv_points(uv_file_path)
         tl.print_data_points(uv_points)
         points_gray = tm.mapping_points_gray(uv_points, file_path)

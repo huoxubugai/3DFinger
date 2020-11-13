@@ -16,7 +16,8 @@ def get_uv_for_points(data_points_contain_camera):
 def get_texture_for_single_point(point_data):
     # 获取相机下标索引,通过索引下标获得对应的投影矩阵
     camera_index = point_data[3]
-    camera_projection_mat = tl.all_camera_projection_mat[camera_index]
+    '这里要注意用的是哪个投影矩阵'
+    camera_projection_mat = tl.all_camera_projection_mat_resize[camera_index]
     camera_projection_mat = np.mat(camera_projection_mat)
     # 根据公式，将点的x,y,z坐标变为4*1矩阵形式，最后补1
     point_mat = np.mat([[point_data[0]],
