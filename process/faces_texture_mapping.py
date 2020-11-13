@@ -14,8 +14,9 @@ def mapping_faces_gray(data_points_contain_camera, faces_point, file_path):
         get_texture_from_bmp(face, data_points_contain_camera)  # 会将所有三角面片对应点的纹理全放进哈希表中,同时对面片按相机分类
     # todo 按不同相机遍历face，根据face的顶点，从哈希表中分别将不同的相机的纹理值取出，记住其中的最大最小值，对对应bmp做crop放进png中
     # 根据全局变量bmp_crop_ranges，去对bmp图片做crop，然后放入uv map png图片中
-    crop_bmp_to_png(file_path)
-
+    uv_map_png = crop_bmp_to_png(file_path)
+    # 对每个面进行遍历，获取面上的点再uvmap_png中的对应uv值，然后按预期格式会写到obj文件中
+    get_png_uv_write_to_obj(faces_point)
     pass
 
 
@@ -86,11 +87,16 @@ def crop_bmp_to_png(file_path):
     png_height = tl.crops_width_and_height[0][1] + tl.crops_width_and_height[1][1] + tl.crops_width_and_height[2][1] + \
                  tl.crops_width_and_height[3][1] + tl.crops_width_and_height[4][1] + tl.crops_width_and_height[5][1]
     uv_map_png = np.zeros((png_height, png_width), dtype=np.uint8)
+    # 放入全局变量
+    tl.uv_map_size[:] = png_width, png_height
     for i in range(0, 6):
         cur_crop_range = tl.bmp_crop_ranges[i]
         cur_crop_bmp = crop_bmp(cur_crop_range, i, file_path)
         # 将crop出的图放入png中
         put_crop_into_png(cur_crop_bmp, uv_map_png, i)
+    # 将png写入本地
+    cv2.imwrite(file_path + '.png', uv_map_png)
+    return uv_map_png
 
 
 # 计算crop出的图片宽度和高度
@@ -134,8 +140,44 @@ def put_crop_into_png(crop_pic, uv_map_png, camera_index):
         v_start += tl.crops_width_and_height[i][1]  # 累积前面的高度
         i += 1
     uv_map_png[v_start:v_start + crop_height, 0:crop_wight] = crop_pic
-    plt.imshow(uv_map_png, cmap="gray")
-    plt.show()
+    # plt.imshow(uv_map_png, cmap="gray")
+    # plt.show()
+
+
+def get_png_uv_write_to_obj(faces_point):
+    vt_list = []  # 每一行放在obj文件中f i/_ j/_ k/_
+    vt_uv_val = []  # 存放uv具体信息  u,v:0->1
+    i = 1  # vt_index 按照obj规定 ，从1开始
+    for face in faces_point:
+        camera_index = face[3]
+        vt_in_face = []
+        for vertex in face[0:3]:
+            key = str(camera_index) + "_" + str(vertex)
+            # 先判断key是否存在于全局哈希表map_vertex_to_vt_index中，若存在，不用后续操作，直接取出
+            if key not in tl.map_vertex_to_vt_index.keys():
+                cur_texture = tl.map_vertex_to_texture[key]
+                cur_uv_in_png = get_uv_from_png(cur_texture, camera_index)
+                vt_uv_val.append(cur_uv_in_png)
+                vt_in_face.append(i)
+                # 将key和值i放入全局哈希表map_vertex_to_vt_index
+                tl.map_vertex_to_vt_index[key] = i  # todo 使用i作为index时记得减一
+                i += 1
+            else:
+                vt_in_face.append(tl.map_vertex_to_vt_index[key])
+        vt_list.append(vt_in_face)
+    tl.print_data_points(vt_uv_val)
+    tl.print_data_points(vt_list)
+
+# 根据像素信息获取png中对应的uv uv范围为0-1
+def get_uv_from_png(cur_texture, camera_index):
+    png_u = (cur_texture[0] - tl.bmp_crop_ranges[camera_index][0]) / tl.uv_map_size[0]  # 这里uv还需要考虑crop前后的坐标变化
+    cur_height, i = 0, 0
+    while i < camera_index:
+        cur_height += tl.crops_width_and_height[i][1]  # 累积上面的高度
+        i += 1
+    cur_height += (cur_texture[1] - tl.bmp_crop_ranges[camera_index][1])  # 再加上自身的高度
+    png_v = cur_height / tl.uv_map_size[1]
+    return [png_u, png_v]
 
 
 def write_gray_to_obj(points_gray, obj_file_path):

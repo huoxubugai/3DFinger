@@ -144,6 +144,8 @@ all_camera_projection_mat_resize = [
 # 哈希表，存储顶点对应的像素uv信息
 map_vertex_to_texture = dict()
 
+# 哈希表,存储三角面片顶点对应的vt的index(行数)
+map_vertex_to_vt_index = dict()
 # 每个相机对应的三角面片 如faces_belong_camera_A=[[1,3,5],[2,3,5]...]
 # faces_belong_camera_A = []
 # faces_belong_camera_B = []
@@ -161,6 +163,8 @@ bmp_crop_ranges = [[10000, 10000, -1, -1], [10000, 10000, -1, -1],
                    [10000, 10000, -1, -1], [10000, 10000, -1, -1]]
 # 提前计算出crop的宽度u_width和高度v_height,先初始化为0
 crops_width_and_height = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+# uvmap_png的长度和宽度
+uv_map_size = [0, 0]
 
 
 # uvmap的png图
