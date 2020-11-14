@@ -77,7 +77,6 @@ def write_gray_to_obj(points_gray, obj_file_path):
         for line, gray in zip(f, points_gray):
             # line = line[0:-1] + " " + str(gray) + '\n'
             line = line[0:-1] + " " + str(gray[0]) + " " + str(gray[1]) + " " + str(gray[2]) + '\n'
-            #print(line)
             lines.append(line)
         for line in f:  # 写入剩下的数据
             lines.append(line)

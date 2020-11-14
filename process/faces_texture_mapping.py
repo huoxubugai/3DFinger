@@ -16,8 +16,8 @@ def mapping_faces_gray(data_points_contain_camera, faces_point, file_path):
     # 根据全局变量bmp_crop_ranges，去对bmp图片做crop，然后放入uv map png图片中
     uv_map_png = crop_bmp_to_png(file_path)
     # 对每个面进行遍历，获取面上的点再uvmap_png中的对应uv值，然后按预期格式会写到obj文件中
-    get_png_uv_write_to_obj(faces_point)
-    pass
+    uv_val_in_obj, vt_list = get_png_uv_from_crops(faces_point)
+    write_uv_to_obj(uv_val_in_obj, vt_list, file_path)
 
 
 # 获得三角面片属于什么相机
@@ -61,6 +61,9 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
         u = res[0, 0] / res[2, 0]
         v = res[1, 0] / res[2, 0]
         # uv 取整
+        # todo 为什么u会出现负数
+        if u < 0:
+            print(u)
         u = round(u)
         v = round(v)
         # todo  uv 取整时不应该超过uv的应有范围，后续还是应该采用精度更高的做法，另外uv和像素矩阵的对应关系也应该确定是否是v-1.u-1
@@ -140,11 +143,12 @@ def put_crop_into_png(crop_pic, uv_map_png, camera_index):
         v_start += tl.crops_width_and_height[i][1]  # 累积前面的高度
         i += 1
     uv_map_png[v_start:v_start + crop_height, 0:crop_wight] = crop_pic
-    # plt.imshow(uv_map_png, cmap="gray")
-    # plt.show()
+    plt.imshow(uv_map_png, cmap="gray")
+    plt.show()
 
 
-def get_png_uv_write_to_obj(faces_point):
+# 获得obj中所需要的信息
+def get_png_uv_from_crops(faces_point):
     vt_list = []  # 每一行放在obj文件中f i/_ j/_ k/_
     vt_uv_val = []  # 存放uv具体信息  u,v:0->1
     i = 1  # vt_index 按照obj规定 ，从1开始
@@ -167,6 +171,8 @@ def get_png_uv_write_to_obj(faces_point):
         vt_list.append(vt_in_face)
     tl.print_data_points(vt_uv_val)
     tl.print_data_points(vt_list)
+    return vt_uv_val, vt_list
+
 
 # 根据像素信息获取png中对应的uv uv范围为0-1
 def get_uv_from_png(cur_texture, camera_index):
@@ -178,6 +184,35 @@ def get_uv_from_png(cur_texture, camera_index):
     cur_height += (cur_texture[1] - tl.bmp_crop_ranges[camera_index][1])  # 再加上自身的高度
     png_v = cur_height / tl.uv_map_size[1]
     return [png_u, png_v]
+
+
+def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
+    lines = []
+    with open(file_path + '.obj', 'r') as f:
+        # 先添加首部的顶点数据
+        for line in f:
+            # line = line[0:-1] + " " + str(gray) + '\n'
+            # line = line[0:-1] +
+            # print(line)
+            if line[0] == 'v':
+                lines.append(line)
+                continue
+            else:
+                break
+        # 在中部放入计算出来的uv信息
+        for uv_val in uv_val_in_obj:
+            cur_str = 'vt' + " " + str(uv_val[0]) + " " + str(uv_val[1]) + '\n'
+            lines.append(cur_str)
+        # 在底部更新三角面片数据
+        for line, vt_index in zip(f, vt_list):
+            face = line.split(" ")  # 先将字符串按空格切分成数组,取出末尾换行符，再进行拼接
+            cur_str = 'f' + " " + face[1] + "/" + str(vt_index[0]) + \
+                      " " + face[2] + "/" + str(vt_index[1]) + " " + \
+                      face[3].replace('\n', '') + "/" + str(vt_index[2]) + '\n'
+            print(line)
+            lines.append(cur_str)
+    with open(file_path + '_new.obj', 'w+') as f_new:
+        f_new.writelines(lines)
 
 
 def write_gray_to_obj(points_gray, obj_file_path):
