@@ -62,15 +62,15 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
         v = res[1, 0] / res[2, 0]
         # uv 取整
         # todo 为什么u会出现负数
-        if u < 0:
-            print(u)
+        # if u < 0:
+        #     print(u)
         u = round(u)
         v = round(v)
         # todo  uv 取整时不应该超过uv的应有范围，后续还是应该采用精度更高的做法，另外uv和像素矩阵的对应关系也应该确定是否是v-1.u-1
         # 由于(u,v)只代表像素的列数与行数,而四舍五入存在误差，为了不超过uv的范围，将它强行归到1-1280范围，1-800范围
-        if u == 0:
+        if u <= 0:
             u = 1
-        if v == 0:
+        if v <= 0:
             v = 1
         # 根据相机索引和像素点下标拼接key值，然后将uv放到哈希表中
         tl.map_vertex_to_texture[key] = [u, v]
