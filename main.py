@@ -39,7 +39,7 @@ if __name__ == '__main__':
         center_point = pfd.get_center_point(data_points)
         print("中心点是：\n", center_point)
         # 求出六个相机在世界坐标系下的原点
-        camera_points = pfd.get_all_camera_origin()
+        camera_points = pfd.get_cameras_coordinate()
         print("六个相机的原点为：\n", camera_points)
         # 获取相机平面的参数ax+by+cz+d=0
         camera_plane_para = pfd.get_camera_plane(camera_points)

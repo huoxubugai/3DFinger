@@ -2,6 +2,7 @@ import numpy as np
 from tool import tools as tl
 import cv2
 
+
 # 基于点的纹理映射
 # 根据处理好的数据和相机的内外参进行处理，后续可换成文件名形式进行读取数据
 # 因为已经事先根据内外参得到了相机的投影矩阵，因此直接用投影矩阵计算
@@ -39,7 +40,7 @@ def get_texture_for_single_point(point_data):
 # 获取所有数据点的灰度值
 def mapping_points_gray(uv_points, file_path):
     path_str = file_path.split("/")
-    picture_path_prefix = 'outer_files/images/' + path_str[2] # todo 注意这里的索引会随着文件路径改变而改变
+    picture_path_prefix = 'outer_files/images/' + path_str[2]  # todo 注意这里的索引会随着文件路径改变而改变
     points_gray = []
     for i in range(len(uv_points)):
         cur_gray = mapping_single_point_gray(uv_points[i], picture_path_prefix)

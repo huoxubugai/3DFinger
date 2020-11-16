@@ -12,7 +12,7 @@ print(a2)
 origin = pfd.get_single_camera_origin(a)
 # print(origin)
 
-camera_origins = pfd.get_all_camera_origin()
+camera_origins = pfd.get_cameras_coordinate()
 print(camera_origins)
 camera_origins = np.array(camera_origins)
 

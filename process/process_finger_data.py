@@ -3,6 +3,7 @@ from tool import tools as tl
 
 
 # 根据obj文件获得mesh的顶点数据
+# 数据点的数据结构选择list而不是数组,方便后续拓展
 def read_mesh_points(obj_file_path):
     with open(obj_file_path) as file:
         points = []
@@ -14,8 +15,6 @@ def read_mesh_points(obj_file_path):
             if strs[0] == "v":
                 cur = [float(strs[1]), float(strs[2]), float(strs[3])]
                 points.append(cur)
-                # points.append((float(strs[1]), float(strs[2]), float(strs[3])))
-
             else:
                 break
 
@@ -74,17 +73,8 @@ def get_center_point(points):
     return center_point
 
 
-# 根据相机外参获得相机在世界坐标系下的坐标
-def get_single_camera_origin(m2):
-    # 先对外参矩阵求逆
-    m2 = m2.I
-    m2 = np.array(m2)
-    # 按公式可得坐标就是逆矩阵中每行的最后一个元素
-    origin = m2[:3, 3]  # 取前三行第四个元素即可
-    return origin
-
-
-def get_all_camera_origin():
+# 获取所有相机在世界坐标系下的坐标
+def get_cameras_coordinate():
     camera_origins = [get_single_camera_origin(tl.camera_a_outer_para),
                       get_single_camera_origin(tl.camera_b_outer_para),
                       get_single_camera_origin(tl.camera_c_outer_para),
@@ -96,20 +86,30 @@ def get_all_camera_origin():
     return camera_origins
 
 
+# 根据相机外参获得相机在世界坐标系下的坐标
+def get_single_camera_origin(m2):
+    # 先对外参矩阵求逆
+    m2 = m2.I
+    m2 = np.array(m2)
+    # 按公式可得坐标就是逆矩阵中每行的最后一个元素
+    origin = m2[:3, 3]  # 取前三行第四个元素即可
+    return origin
+
+
 # 获取相机平面ax+by+cz+d=0
-def get_camera_plane(camera_point):
+def get_camera_plane(cameras_coordinate):
     # B相机坐标
-    x1 = camera_point[1][0]
-    y1 = camera_point[1][1]
-    z1 = camera_point[1][2]
+    x1 = cameras_coordinate[1][0]
+    y1 = cameras_coordinate[1][1]
+    z1 = cameras_coordinate[1][2]
     # C相机坐标
-    x2 = camera_point[2][0]
-    y2 = camera_point[2][1]
-    z2 = camera_point[2][2]
+    x2 = cameras_coordinate[2][0]
+    y2 = cameras_coordinate[2][1]
+    z2 = cameras_coordinate[2][2]
     # D相机坐标
-    x3 = camera_point[3][0]
-    y3 = camera_point[3][1]
-    z3 = camera_point[3][2]
+    x3 = cameras_coordinate[3][0]
+    y3 = cameras_coordinate[3][1]
+    z3 = cameras_coordinate[3][2]
 
     a = (y2 - y1) * (z3 - z1) - (y3 - y1) * (z2 - z1)
     b = (z2 - z1) * (x3 - x1) - (z3 - z1) * (x2 - x1)
@@ -129,29 +129,29 @@ def get_data_points_mapping(data_points, camera_plane_para):
 
 
 # 方法一 根据映射投影矢量之间夹角最小来判断mesh上所有顶点来自哪个摄像机拍摄（与哪个摄像机最近）
-def get_data_points_from_which_camera(center_point, data_points_mapping, camera_points, data_points):
-    # 设当前顶点为N，中心点为0，两个相邻的相机为X，Y。则判断分为两步
-    # 第二步：根据O_N_向量与OA,OB...等向量夹角，找到夹角最小的相机即为所选择
+def get_data_points_from_which_camera(center_point, data_points_mapping, cameras_coordinate_mapping, data_points):
+    # 设当前顶点为N，中心点为0，两个相邻的相机为X，Y。则判断方法为
+    # 根据O_N_向量与OA,OB...等向量夹角，找到夹角最小的相机即为所选择
 
-    # 计算一下每个相机出现的次数，判断是否均衡
-    camera_index_count = [0, 0, 0, 0, 0, 0]
+    # 计算一下每个相机拥有的点的个数，判断是否均衡(发现基本均衡)
+    # camera_index_count = [0, 0, 0, 0, 0, 0]
     for i in range(len(data_points_mapping)):
         cur_target_camera_index = get_single_point_from_which_camera(center_point, data_points_mapping[i],
-                                                                     camera_points)
+                                                                     cameras_coordinate_mapping)
         data_points[i].append(cur_target_camera_index)  # 将找到的相机添加在当前数据后面
-        camera_index_count[cur_target_camera_index] += 1
-    print("每个相机出现的次数为：", camera_index_count)  # 分别为38, 49, 51, 36, 40, 42
+        # camera_index_count[cur_target_camera_index] += 1
+    # print("每个相机出现的次数为：", camera_index_count)  # 分别为38, 49, 51, 36, 40, 42
     return data_points  # 这里返回的应该是源数据 而不是映射数据
 
 
 # 判断mesh上单一顶点来自哪个摄像机拍摄（与哪个摄像机最近）
 # 根据ON向量与OA,OB,...向量夹角比较，夹角越小，余弦值越大，即为所需
-def get_single_point_from_which_camera(center_point, cur_point, camera_points):
+def get_single_point_from_which_camera(center_point, cur_point, cameras_coordinate):
     cur_vector = calculate_vector(center_point, cur_point)
-    max_vector_cosine = -2  # 初始化最大值为一个很小的值
+    max_vector_cosine = -2  # 初始化最大值为一个很小的值，余弦值为[-1,1]
     target_camera_index = 0  # 初始化A相机是所求的相机下标，0代表A，1代表B 以此类推
-    for i in range(len(camera_points)):
-        camera_vector = calculate_vector(center_point, camera_points[i])
+    for i in range(len(cameras_coordinate)):
+        camera_vector = calculate_vector(center_point, cameras_coordinate[i])
         cur_cosine = tl.calculate_cosine(cur_vector, camera_vector)
         if cur_cosine > max_vector_cosine:
             max_vector_cosine = cur_cosine

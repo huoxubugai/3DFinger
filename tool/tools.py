@@ -1,6 +1,7 @@
 # 定义全局变量和方法
 import numpy as np
 import math
+import process.process_finger_data as pfd
 
 # 相机索引对应相机名称
 camera_index_to_name = ['A', 'B', 'C', 'D', 'E', 'F']
@@ -138,9 +139,22 @@ all_camera_projection_mat_resize = [
 ]
 
 # 六个相机在世界坐标系下的坐标
+cameras_coordinate = [[2.50436065, -3.75589484, 1.88800446],
+                      [4.02581981, -2.56894275, -3.29281609],
+                      [1.01348544, 1.88043939, -5.4273143],
+                      [-2.45261002, 3.5962286, -1.87506165],
+                      [-3.12155638, 2.09254542, 2.21770186],
+                      [-1.07692383, -1.37631717, 4.3081322]]
+# 六个相机组成的空间平面方程参数 AX+BY+CZ+D=0
+camera_plane_para = [19.467678495159983, 18.098947303577706, 10.253452426300939, 1.884526845005233]
 
-# 六个相机组成的空间平面方程
-
+# 六个相机映射到同一平面后的相机坐标,这里选用的是BCD三个相机作为相机平面，因此只需要将AEF映射到平面
+cameras_coordinate_mapping = [[2.45592658, -3.80092362, 1.86249467],
+                              [4.02581981, -2.56894275, -3.29281609],
+                              [1.01348544, 1.88043939, -5.4273143],
+                              [-2.45261002, 3.5962286, -1.87506165],
+                              [-3.16297766, 2.05403639, 2.19588564],
+                              [-1.08130466, -1.38038999, 4.30582486]]
 # 哈希表，存储顶点对应的像素uv信息
 map_vertex_to_texture = dict()
 
@@ -197,7 +211,7 @@ def calculate_vector_product(vector1, vector2):
     return vector_product
 
 
-# 点到空间平面的映射点
+# 点到空间平面的映射点（投影）
 def get_mapping_point_in_camera_plane(point, camera_plane_para):
     a = camera_plane_para[0]
     b = camera_plane_para[1]
@@ -206,9 +220,29 @@ def get_mapping_point_in_camera_plane(point, camera_plane_para):
     x = point[0]
     y = point[1]
     z = point[2]
-    temp = a * a + b * b + c * c
-    x_ = ((b * b + c * c) * x - a * (b * y + c * z + d)) / temp
-    y_ = ((a * a + c * c) * y - b * (a * x + c * z + d)) / temp
-    z_ = ((a * a + b * b) * z - c * (a * x + b * y + d)) / temp
+    # 避免重复计算，不知python是否已有优化
+    a_ = a * a
+    b_ = b * b
+    c_ = c * c
+    temp = a_ + b_ + c_
+    x_ = ((b_ + c_) * x - a * (b * y + c * z + d)) / temp
+    y_ = ((a_ + c_) * y - b * (a * x + c * z + d)) / temp
+    z_ = ((a_ + b_) * z - c * (a * x + b * y + d)) / temp
     point_ = [x_, y_, z_]
     return point_
+
+
+# 全局变量中部分数据的由来（因为外参已经固定，所以部分数据基本不会改变，减少计算量）
+def pre_process():
+    # 求出六个相机在世界坐标系下的坐标
+    cameras_coordinate = pfd.get_cameras_coordinate()
+    # 求出相机参数平面
+    camera_plane_para = pfd.get_camera_plane(cameras_coordinate)
+    # 获取A，E，F的映射点
+    camera_a_point = get_mapping_point_in_camera_plane(cameras_coordinate[0], camera_plane_para)
+    camera_e_point = get_mapping_point_in_camera_plane(cameras_coordinate[4], camera_plane_para)
+    camera_f_point = get_mapping_point_in_camera_plane(cameras_coordinate[5], camera_plane_para)
+    # 六个相机归到一个平面之后的坐标：BCD不变，AEF映射到BCD平面
+    camera_point_mapping = [camera_a_point, cameras_coordinate[1], cameras_coordinate[2],
+                            cameras_coordinate[3], camera_e_point, camera_f_point]
+    camera_point_mapping = np.array(camera_point_mapping)

@@ -183,3 +183,17 @@ class Test(unittest.TestCase):
         # plt.imshow(img, cmap="gray")
         plt.imshow(resize_img, cmap="gray")
         plt.show()
+
+    def test_crop_bmp(self):
+        path = 'C:/Users/10327/Desktop/testmesh/test2/test3/saved_spot.png'
+        img = cv2.imread(path)
+        crop_img = img[961:1362, :]
+        plt.imshow(crop_img, cmap="gray")
+        plt.show()
+
+    # 测试点到空间平面的投影
+    def test_get_mapping_point_in_camera_plane(self):
+        camera_plane_para = [1, 2, -1, 1]
+        point = [-1, 2, 0]
+        mapping_point = tl.get_mapping_point_in_camera_plane(point, camera_plane_para)
+        print(mapping_point)

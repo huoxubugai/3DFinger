@@ -9,12 +9,12 @@ def mapping_faces_gray(data_points_contain_camera, faces_point, file_path):
     # 得出每个三角面片都属于哪一个相机，两个点及以上属于一个相机，则该面属于该相机
     faces_point_contain_camera = get_faces_belong_which_camera(data_points_contain_camera, faces_point)
     # todo 考虑是否需要将这个写入本地文件
-    # 拿到三角面片对应的相机后，对该三角面片做相应图片的映射，三维——》二维
+    # 拿到三角面片对应的相机后，对该三角面片做相应图片的映射，三维——>二维
     for face in faces_point_contain_camera:
         get_texture_from_bmp(face, data_points_contain_camera)  # 会将所有三角面片对应点的纹理全放进哈希表中,同时对面片按相机分类
     # todo 按不同相机遍历face，根据face的顶点，从哈希表中分别将不同的相机的纹理值取出，记住其中的最大最小值，对对应bmp做crop放进png中
     # 根据全局变量bmp_crop_ranges，去对bmp图片做crop，然后放入uv map png图片中
-    uv_map_png = crop_bmp_to_png(file_path)
+    crop_bmp_to_png(file_path)
     # 对每个面进行遍历，获取面上的点再uvmap_png中的对应uv值，然后按预期格式会写到obj文件中
     uv_val_in_obj, vt_list = get_png_uv_from_crops(faces_point)
     write_uv_to_obj(uv_val_in_obj, vt_list, file_path)
@@ -26,9 +26,9 @@ def get_faces_belong_which_camera(data_points_contain_camera, faces_point):
     for face in faces_point:
         face_with_camera = []
         for v in face:
-            camera_index = data_points_contain_camera[v - 1][3]
+            camera_index = data_points_contain_camera[v - 1][3]  # 因为obj中的v都是从1开始的，因此减一
             face_with_camera.append(camera_index)
-        max_count_camera = max(face_with_camera, key=face_with_camera.count)  # 得出出现最多次数的相机索引
+        max_count_camera = max(face_with_camera, key=face_with_camera.count)  # 得出列表中出现最多次数的相机索引
         face.append(max_count_camera)
         faces_point_contain_camera.append(face)
     return faces_point_contain_camera
@@ -62,8 +62,8 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
         v = res[1, 0] / res[2, 0]
         # uv 取整
         # todo 为什么u会出现负数
-        if u < 0:
-            print(u)
+        # if u < 0:
+        #     print(u)
         u = round(u)
         v = round(v)
         # todo  uv 取整时不应该超过uv的应有范围，后续还是应该采用精度更高的做法，另外uv和像素矩阵的对应关系也应该确定是否是v-1.u-1
@@ -101,7 +101,6 @@ def crop_bmp_to_png(file_path):
         put_crop_into_png(cur_crop_bmp, uv_map_png, i)
     # 将png写入本地
     cv2.imwrite(file_path + '.png', uv_map_png)
-    return uv_map_png
 
 
 # 计算crop出的图片宽度和高度
