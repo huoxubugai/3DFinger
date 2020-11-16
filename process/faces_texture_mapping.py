@@ -62,8 +62,8 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
         v = res[1, 0] / res[2, 0]
         # uv 取整
         # todo 为什么u会出现负数
-        # if u < 0:
-        #     print(u)
+        if u < 0:
+            print(u)
         u = round(u)
         v = round(v)
         # todo  uv 取整时不应该超过uv的应有范围，后续还是应该采用精度更高的做法，另外uv和像素矩阵的对应关系也应该确定是否是v-1.u-1
@@ -92,6 +92,8 @@ def crop_bmp_to_png(file_path):
     uv_map_png = np.zeros((png_height, png_width), dtype=np.uint8)
     # 放入全局变量
     tl.uv_map_size[:] = png_width, png_height
+    # 计算出crop的v在png中所占的比重范围
+    calculate_crop_v_scale_in_png()
     for i in range(0, 6):
         cur_crop_range = tl.bmp_crop_ranges[i]
         cur_crop_bmp = crop_bmp(cur_crop_range, i, file_path)
@@ -116,6 +118,18 @@ def calculate_crop_width_and_height():
                                     tl.bmp_crop_ranges[4][3] - tl.bmp_crop_ranges[4][1]]
     tl.crops_width_and_height[5] = [tl.bmp_crop_ranges[5][2] - tl.bmp_crop_ranges[5][0],
                                     tl.bmp_crop_ranges[5][3] - tl.bmp_crop_ranges[5][1]]
+
+
+# 提前计算出各个相机crop出的图在png中v所占的范围比重（0-1），例如A：0-0.25，B：0.25-0.4...F：0.8-1
+def calculate_crop_v_scale_in_png():
+    png_height = tl.uv_map_size[1]
+    for i in range(0, 6):
+        if i == 0:
+            tl.crops_v_scale_in_png[i][1] = tl.crops_width_and_height[i][1] / png_height
+        else:
+            tl.crops_v_scale_in_png[i][0] = tl.crops_v_scale_in_png[i - 1][1]
+            tl.crops_v_scale_in_png[i][1] = tl.crops_v_scale_in_png[i][0] + (
+                    tl.crops_width_and_height[i][1] / png_height)
 
 
 def crop_bmp(crop_range, camera_index, file_path):
@@ -143,8 +157,8 @@ def put_crop_into_png(crop_pic, uv_map_png, camera_index):
         v_start += tl.crops_width_and_height[i][1]  # 累积前面的高度
         i += 1
     uv_map_png[v_start:v_start + crop_height, 0:crop_wight] = crop_pic
-    plt.imshow(uv_map_png, cmap="gray")
-    plt.show()
+    # plt.imshow(uv_map_png, cmap="gray")
+    # plt.show()
 
 
 # 获得obj中所需要的信息
@@ -164,25 +178,29 @@ def get_png_uv_from_crops(faces_point):
                 vt_uv_val.append(cur_uv_in_png)
                 vt_in_face.append(i)
                 # 将key和值i放入全局哈希表map_vertex_to_vt_index
-                tl.map_vertex_to_vt_index[key] = i  # todo 使用i作为index时记得减一
+                tl.map_vertex_to_vt_index[key] = i
                 i += 1
             else:
                 vt_in_face.append(tl.map_vertex_to_vt_index[key])
         vt_list.append(vt_in_face)
-    tl.print_data_points(vt_uv_val)
-    tl.print_data_points(vt_list)
+    # tl.print_data_points(vt_uv_val)
+    # tl.print_data_points(vt_list)
     return vt_uv_val, vt_list
 
 
 # 根据像素信息获取png中对应的uv uv范围为0-1
 def get_uv_from_png(cur_texture, camera_index):
     png_u = (cur_texture[0] - tl.bmp_crop_ranges[camera_index][0]) / tl.uv_map_size[0]  # 这里uv还需要考虑crop前后的坐标变化
-    cur_height, i = 0, 0
-    while i < camera_index:
-        cur_height += tl.crops_width_and_height[i][1]  # 累积上面的高度
-        i += 1
-    cur_height += (cur_texture[1] - tl.bmp_crop_ranges[camera_index][1])  # 再加上自身的高度
-    png_v = cur_height / tl.uv_map_size[1]
+    # cur_height, i = 0, 0
+    # while i < camera_index:
+    #     cur_height += tl.crops_width_and_height[i][1]  # 累积上面的高度
+    #     i += 1
+    # cur_height += (cur_texture[1] - tl.bmp_crop_ranges[camera_index][1])  # 再加上自身的高度
+    cur_height = (cur_texture[1] - tl.bmp_crop_ranges[camera_index][1]) / tl.uv_map_size[1]
+    png_v = tl.crops_v_scale_in_png[camera_index][0] + cur_height
+    if png_v < tl.crops_v_scale_in_png[camera_index][0] or png_v > tl.crops_v_scale_in_png[camera_index][1]:
+        # 说明出现了错误的范围
+        print(png_v, camera_index)
     return [png_u, png_v]
 
 
@@ -209,11 +227,7 @@ def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
             cur_str = 'f' + " " + face[1] + "/" + str(vt_index[0]) + \
                       " " + face[2] + "/" + str(vt_index[1]) + " " + \
                       face[3].replace('\n', '') + "/" + str(vt_index[2]) + '\n'
-            print(line)
+            # print(line)
             lines.append(cur_str)
     with open(file_path + '_new.obj', 'w+') as f_new:
         f_new.writelines(lines)
-
-
-def write_gray_to_obj(points_gray, obj_file_path):
-    pass
