@@ -18,7 +18,7 @@ def get_texture_for_single_point(point_data):
     # 获取相机下标索引,通过索引下标获得对应的投影矩阵
     camera_index = point_data[3]
     '这里要注意用的是哪个投影矩阵'
-    camera_projection_mat = tl.all_camera_projection_mat_resize[camera_index]
+    camera_projection_mat = tl.all_camera_projection_mat[camera_index]
     camera_projection_mat = np.mat(camera_projection_mat)
     # 根据公式，将点的x,y,z坐标变为4*1矩阵形式，最后补1
     point_mat = np.mat([[point_data[0]],
@@ -30,7 +30,7 @@ def get_texture_for_single_point(point_data):
     u = res[0, 0] / res[2, 0]
     v = res[1, 0] / res[2, 0]
     # uv 取整
-    u = round(u)
+    u = round(u)  # todo  后续做插值而不是取整
     v = round(v)
     point_data.append(u)
     point_data.append(v)
@@ -50,24 +50,34 @@ def mapping_points_gray(uv_points, file_path):
 
 # 获取单个点的灰度值
 def mapping_single_point_gray(point, pic_path_prefix):
-    camera_index = point[0]
+    camera_index = point[3]
     camera_index = round(camera_index)
     camera_name = tl.camera_index_to_name[camera_index]
     pic_file_path = pic_path_prefix + '_' + camera_name + '.bmp'  # 拼接文件名
-    u = round(point[1])  # todo 后续做插值而不是取整
-    v = round(point[2])
+    u = point[4]
+    v = point[5]
+    if u <= 0:
+        u = 1
+    if v <= 0:
+        v = 1
     # 打开图片，根据uv获取灰度值
-    gray = get_pic_gray(pic_file_path, u, v)
+    gray = get_pic_gray(pic_file_path, camera_index, u, v)
     # point.append(gray)
     return gray
 
 
 # 根据图片路径和像素u,v获取像素点的灰度值
-def get_pic_gray(pic_file_path, u, v):
+def get_pic_gray(pic_file_path, camera_index, u, v):
     # cur_img = cv2.imread(pic_file_path, cv2.IMREAD_GRAYSCALE)  # 用opencv去读取bmp 直接拿到灰度值
-    cur_img = cv2.imread(pic_file_path)
+    # 如果全局变量有当前的bmp像素，则直接去取，否则imread，然后放入全局变量中
+    if len(tl.bmp_pixel[camera_index]) != 0:
+        cur_img = tl.bmp_pixel[camera_index]
+    else:
+        cur_img = cv2.imread(pic_file_path)
+        tl.bmp_pixel[camera_index] = cur_img
+    # cur_img = cv2.imread(pic_file_path)
     gray = cur_img[v - 1][u - 1]  # 注意这里u，v和像素矩阵的索引是要反过来的，在图像坐标系中，u为横坐标，v为纵坐标，这里是v-1,u-1还是v u？
-    # 出现了错误：IndexError: index 1280 is out of bounds for axis 0 with size 1280,说明这里需要减一
+    # print("占用内存为：", sys.getsizeof(cur_img))
     return gray
 
 

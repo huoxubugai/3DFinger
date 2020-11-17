@@ -197,3 +197,9 @@ class Test(unittest.TestCase):
         point = [-1, 2, 0]
         mapping_point = tl.get_mapping_point_in_camera_plane(point, camera_plane_para)
         print(mapping_point)
+
+    # 测试cv2.imread()是否会造成内存过大的问题
+    def test_cv2_imread_memory(self):
+        for i in range(0, 4848):
+            file_path = '../outer_files/images/001_1_2_01_F.bmp'
+            img = cv2.imread(file_path)
