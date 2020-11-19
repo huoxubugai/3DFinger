@@ -11,8 +11,7 @@ def mapping_faces_gray(data_points_contain_camera, faces_point, file_path):
     # todo 考虑是否需要将这个写入本地文件
     # 拿到三角面片对应的相机后，对该三角面片做相应图片的映射，三维——>二维
     for face in faces_point_contain_camera:
-        get_texture_from_bmp(face, data_points_contain_camera)  # 会将所有三角面片对应点的纹理全放进哈希表中,同时对面片按相机分类
-    # todo 按不同相机遍历face，根据face的顶点，从哈希表中分别将不同的相机的纹理值取出，记住其中的最大最小值，对对应bmp做crop放进png中
+        get_texture_from_bmp(face, data_points_contain_camera, file_path)  # 会将所有三角面片对应点的纹理全放进哈希表中,同时对面片按相机分类
     # 根据全局变量bmp_crop_ranges，去对bmp图片做crop，然后放入uv map png图片中
     crop_bmp_to_png(file_path)
     # 对每个面进行遍历，获取面上的点再uvmap_png中的对应uv值，然后按预期格式会写到obj文件中
@@ -34,14 +33,20 @@ def get_faces_belong_which_camera(data_points_contain_camera, faces_point):
     return faces_point_contain_camera
 
 
-def get_texture_from_bmp(face, data_points_contain_camera):
+def get_texture_from_bmp(face, data_points_contain_camera, file_path):
     # 用face里面存储的点的索引，去data_points_contain_camera里拿到对应的数据点
     camera_index = face[3]
     # 将face根据不同的相机放进全局变量
-    tl.faces_belong_camera[camera_index].append(face)
+    tl.faces_belong_camera[camera_index].append(face)  # 该变量目前还没有用到
+    # todo 将单独每个三角面crop出来，看看纹理是否符合预期
+    face_vertex = []
     for vertex_index in face[0:3]:  # 注意这里只有前三个才是顶点索引
         vertex_data = data_points_contain_camera[vertex_index - 1]
-        get_texture_for_vertex(vertex_data, camera_index, vertex_index)
+        cur_vertex = get_texture_for_vertex(vertex_data, camera_index, vertex_index)
+        face_vertex.append(cur_vertex)
+    # 查看单一面片的纹理crop
+    '该函数及该函数所用到的变量只用于debug'
+    # show_single_face_crop(face_vertex, camera_index, file_path)
 
 
 # 这个方法和之前求纹理的方法get_texture_for_single_point类似，只是输入输出参数不同
@@ -62,8 +67,6 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
         v = res[1, 0] / res[2, 0]
         # uv 取整
         # todo 为什么u会出现负数
-        # if u < 0:
-        #     print(u)
         u = round(u)
         v = round(v)
         # todo  uv 取整时不应该超过uv的应有范围，后续还是应该采用精度更高的做法，另外uv和像素矩阵的对应关系也应该确定是否是v-1.u-1
@@ -72,13 +75,38 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
             u = 1
         if v <= 0:
             v = 1
+        if u >= 1280:
+            u = 1280
         # 根据相机索引和像素点下标拼接key值，然后将uv放到哈希表中
         tl.map_vertex_to_texture[key] = [u, v]
-        # 同时更新全局变量中的uv crop范围
+        # 同时更新全局变量中的uv crop范围 umin vmin umax vmax
         tl.bmp_crop_ranges[camera_index][0] = min(u, tl.bmp_crop_ranges[camera_index][0])
         tl.bmp_crop_ranges[camera_index][1] = min(v, tl.bmp_crop_ranges[camera_index][1])
         tl.bmp_crop_ranges[camera_index][2] = max(u, tl.bmp_crop_ranges[camera_index][2])
         tl.bmp_crop_ranges[camera_index][3] = max(v, tl.bmp_crop_ranges[camera_index][3])
+        return [u, v]
+    else:
+        return tl.map_vertex_to_texture[key]
+
+
+# 显示单个三角面片，用于debug
+def show_single_face_crop(face_vertex, camera_index, file_path):
+    u_min = min(face_vertex[0][0], face_vertex[1][0], face_vertex[2][0])
+    v_min = min(face_vertex[0][1], face_vertex[1][1], face_vertex[2][1])
+    u_max = max(face_vertex[0][0], face_vertex[1][0], face_vertex[2][0])
+    v_max = max(face_vertex[0][1], face_vertex[1][1], face_vertex[2][1])
+    crop_range = [u_min, v_min, u_max, v_max]
+    crop_img = crop_bmp(crop_range, camera_index, file_path)
+    # cv2.imwrite( str(camera_index) + '_' + str(tl.face_index) + 'crop.png', crop_img)
+    file_path += '/' + str(camera_index) + '_' + str(tl.face_index) + '_crop.png'
+    cv2.imwrite(file_path, crop_img)
+    tl.face_index += 1
+    '这个index可以让我们指定在代码运行到第index个三角面片的时候，方便我们调试'
+    if tl.face_index >= 715:
+        plt.imshow(crop_img, cmap="gray")  # todo 为什么这样会变黑
+        plt.show()
+    # plt.imshow(crop_img, cmap="gray")  # todo 为什么这样会变黑
+    # plt.show()
 
 
 def crop_bmp_to_png(file_path):
@@ -139,11 +167,12 @@ def crop_bmp(crop_range, camera_index, file_path):
     pic_file_path = pic_path_prefix + '_' + camera_name + '.bmp'  # 拼接文件名
     cur_img = cv2.imread(pic_file_path, cv2.IMREAD_GRAYSCALE)
     # 根据crop range进行crop
-    crop_img = cur_img[tl.bmp_crop_ranges[camera_index][1]:tl.bmp_crop_ranges[camera_index][3],
-               tl.bmp_crop_ranges[camera_index][0]:tl.bmp_crop_ranges[camera_index][2]]
+    crop_img = cur_img[crop_range[1]:crop_range[3], crop_range[0]:crop_range[2]]
     # plt.imshow(crop_img, cmap="gray")
     # plt.show()
     # 将crop放入png
+    # cv2.rectangle(cur_img, (crop_range[0], crop_range[1]), (crop_range[2], crop_range[3]), (255, 0, 0), 1)
+    # cv2.imshow("rectangle", cur_img)
     return crop_img
 
 
@@ -165,19 +194,23 @@ def get_png_uv_from_crops(faces_point):
     vt_list = []  # 每一行放在obj文件中f i/_ j/_ k/_
     vt_uv_val = []  # 存放uv具体信息  u,v:0->1
     i = 1  # vt_index 按照obj规定 ，从1开始
-    for face in faces_point:
+    # 用index方便定位三角面片调试
+    for index in range(0, len(faces_point)):
+        if index >= 719:
+            print("debug")
+        face = faces_point[index]
         camera_index = face[3]
         vt_in_face = []
         for vertex in face[0:3]:
             key = str(camera_index) + "_" + str(vertex)
             # 先判断key是否存在于全局哈希表map_vertex_to_vt_index中，若存在，不用后续操作，直接取出
             if key not in tl.map_vertex_to_vt_index.keys():
-                cur_texture = tl.map_vertex_to_texture[key]
+                cur_texture = tl.map_vertex_to_texture[key]  # 从全局变量中取出
                 cur_uv_in_png = get_uv_from_png(cur_texture, camera_index)
                 vt_uv_val.append(cur_uv_in_png)
                 vt_in_face.append(i)
                 # 将key和值i放入全局哈希表map_vertex_to_vt_index
-                tl.map_vertex_to_vt_index[key] = i
+                tl.map_vertex_to_vt_index[key] = i  # 这个顶点对应的是第i个vt,然后在得到是第几个vt之后，就可以去vt_list取出
                 i += 1
             else:
                 vt_in_face.append(tl.map_vertex_to_vt_index[key])
@@ -195,17 +228,71 @@ def get_uv_from_png(cur_texture, camera_index):
     #     cur_height += tl.crops_width_and_height[i][1]  # 累积上面的高度
     #     i += 1
     # cur_height += (cur_texture[1] - tl.bmp_crop_ranges[camera_index][1])  # 再加上自身的高度
+    # 下面的代码比上面注释掉的更快，避免每次都需要重复计算累积的高度
     cur_height = (cur_texture[1] - tl.bmp_crop_ranges[camera_index][1]) / tl.uv_map_size[1]
     png_v = tl.crops_v_scale_in_png[camera_index][0] + cur_height
     if png_v < tl.crops_v_scale_in_png[camera_index][0] or png_v > tl.crops_v_scale_in_png[camera_index][1]:
-        # 说明出现了错误的范围
+        # 运行到这里说明出现了错误的范围
         print(png_v, camera_index)
     return [png_u, png_v]
 
 
 def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
     lines = []
+    mtl_info = 'mtllib saved_spot.mtl' + '\n'
+    lines.append(mtl_info)
     with open(file_path + '.obj', 'r') as f:
+        # 先添加首部的顶点数据
+        # todo 要考虑第一行不为数据行或者中间突然出现空行等情况
+        for line in f:
+            # line = line[0:-1] + " " + str(gray) + '\n'
+            # line = line[0:-1] +
+            # print(line)
+            if line[0] == 'v':
+                lines.append(line)
+                continue
+            else:
+                break
+        # 在中部放入计算出来的uv信息
+        for uv_val in uv_val_in_obj:
+            cur_str = 'vt' + " " + str(uv_val[0]) + " " + str(uv_val[1]) + '\n'
+            lines.append(cur_str)
+        mtl_info2 = 'usemtl material_1' + '\n'
+        lines.append(mtl_info2)
+        # 在底部更新三角面片数据，todo 由于之前已经有一个for line in f:，因此运行到这个for时会丢失一个line！！！
+        # todo  避免空格，适配可能出现的各种文件格式！
+
+        # todo 缓兵之计，后续再改
+        face = line.split(" ")  # 先将字符串按空格切分成数组,取出末尾换行符，再进行拼接
+        vt_index = vt_list[0]
+        cur_str = 'f' + " " + face[1] + "/" + str(vt_index[0]) + \
+                  " " + face[2] + "/" + str(vt_index[1]) + " " + \
+                  face[3].replace('\n', '') + "/" + str(vt_index[2]) + '\n'
+        # print(line)
+        lines.append(cur_str)
+        for line, vt_index in zip(f, vt_list[1:]):
+            face = line.split(" ")  # 先将字符串按空格切分成数组,取出末尾换行符，再进行拼接
+            cur_str = 'f' + " " + face[1] + "/" + str(vt_index[0]) + \
+                      " " + face[2] + "/" + str(vt_index[1]) + " " + \
+                      face[3].replace('\n', '') + "/" + str(vt_index[2]) + '\n'
+            # print(line)
+            lines.append(cur_str)
+    with open(file_path + '_new.obj', 'w+') as f_new:
+        f_new.writelines(lines)
+
+
+def write_uv_to_obj2(uv_val_in_obj, vt_list, file_path):
+    lines = []
+    mtl_info = 'mtllib saved_spot.mtl' + '\n'
+    lines.append(mtl_info)
+    with open(file_path + '.obj', 'r') as f:
+        content = f.read()
+        for line in content:
+            if line[0] == 'v':
+                lines.append(line)
+                continue
+            else:
+                break
         # 先添加首部的顶点数据
         for line in f:
             # line = line[0:-1] + " " + str(gray) + '\n'
@@ -220,7 +307,10 @@ def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
         for uv_val in uv_val_in_obj:
             cur_str = 'vt' + " " + str(uv_val[0]) + " " + str(uv_val[1]) + '\n'
             lines.append(cur_str)
-        # 在底部更新三角面片数据
+        mtl_info2 = 'usemtl material_1' + '\n'
+        lines.append(mtl_info2)
+        # 在底部更新三角面片数据，todo 由于之前已经有一个for line in f:，因此运行到这个for时会丢失一个line！！！
+        # todo  避免空格，适配可能出现的各种文件格式！
         for line, vt_index in zip(f, vt_list):
             face = line.split(" ")  # 先将字符串按空格切分成数组,取出末尾换行符，再进行拼接
             cur_str = 'f' + " " + face[1] + "/" + str(vt_index[0]) + \

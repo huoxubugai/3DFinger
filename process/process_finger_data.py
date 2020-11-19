@@ -1,12 +1,14 @@
 import numpy as np
 from tool import tools as tl
+import sys
 
 
 # 根据obj文件获得mesh的顶点数据
 # 数据点的数据结构选择list而不是数组,方便后续拓展
 def read_mesh_points(obj_file_path):
+    points = []
+    # try:
     with open(obj_file_path) as file:
-        points = []
         while 1:
             line = file.readline()
             if not line:
@@ -17,7 +19,9 @@ def read_mesh_points(obj_file_path):
                 points.append(cur)
             else:
                 break
-
+    # except Exception as e:
+    #     print("错误:", e)
+    #     sys.exit(1)
     return points
 
 

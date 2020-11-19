@@ -56,6 +56,9 @@ def mapping_single_point_gray(point, pic_path_prefix):
     pic_file_path = pic_path_prefix + '_' + camera_name + '.bmp'  # 拼接文件名
     u = point[4]
     v = point[5]
+    if u > 1280:
+        print(u)
+        u = 1280
     if u <= 0:
         u = 1
     if v <= 0:
@@ -89,6 +92,7 @@ def write_gray_to_obj(points_gray, obj_file_path):
             # line = line[0:-1] + " " + str(gray) + '\n'
             line = line[0:-1] + " " + str(gray[0]) + " " + str(gray[1]) + " " + str(gray[2]) + '\n'
             lines.append(line)
+        # todo  这里应该也丢失了一行line
         for line in f:  # 写入剩下的数据
             lines.append(line)
     with open(obj_file_path + '_new.obj', 'w+') as f_new:

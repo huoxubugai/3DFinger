@@ -1,10 +1,11 @@
 import unittest
-from process.process_finger_data import *
+from process import process_finger_data as pfd
 import matplotlib.pyplot as plt
 from tool import tools as tl
 from tool import read_24bit_bmp as rbm
 import cv2
 import time
+import numpy as np
 
 
 class Test(unittest.TestCase):
@@ -42,7 +43,7 @@ class Test(unittest.TestCase):
     def test_calculate_vector(self):
         point1 = [1, 2, 3]
         point2 = [3, 2, 1]
-        vector = calculate_vector(point1, point2)
+        vector = pfd.calculate_vector(point1, point2)
         self.assertEqual(vector, [2, 0, -2])
 
     # 测试计算向量积函数
@@ -69,7 +70,7 @@ class Test(unittest.TestCase):
                           [-2.45261002, 3.5962286, -1.87506165],
                           [-3.12155638, 2.09254542, 2.21770186],
                           [-1.07692383, -1.37631717, 4.3081322]]
-        index = get_single_point_from_which_camera(center_point_, cur_point_, camera_origins)
+        index = pfd.get_single_point_from_which_camera(center_point_, cur_point_, camera_origins)
         print("目标相机索引是：", index)
 
     # 测试判断点来自哪两个相机之间的函数
@@ -83,7 +84,7 @@ class Test(unittest.TestCase):
                           [-2.45261002, 3.5962286, -1.87506165],
                           [-3.12155638, 2.09254542, 2.21770186],
                           [-1.07692383, -1.37631717, 4.3081322]]
-        count = get_point_from_which_camera2(cur_point, center_point_, camera_origins)
+        count = pfd.get_point_from_which_camera2(cur_point, center_point_, camera_origins)
         self.assertEqual(count, 1)
 
     # 计算六个相机的投影矩阵
@@ -120,14 +121,14 @@ class Test(unittest.TestCase):
     def test_read_uv_points(self):
         file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01'
         suffix = ".txt"
-        uv_points = read_uv_points(file_path + suffix)
+        uv_points = pfd.read_uv_points(file_path + suffix)
         tl.print_data_points(uv_points)
 
     # 测试读取faces数据
     def test_read_mesh_faces(self):
         file_path = '../outer_files/LFMB_Visual_Hull_Meshes256/002_1_2_01'
         suffix = ".obj"
-        faces_point = read_mesh_faces(file_path + suffix)
+        faces_point = pfd.read_mesh_faces(file_path + suffix)
         tl.print_data_points(faces_point)
 
     # 测试用手写的函数读取位图
@@ -203,3 +204,24 @@ class Test(unittest.TestCase):
         for i in range(0, 4848):
             file_path = '../outer_files/images/001_1_2_01_F.bmp'
             img = cv2.imread(file_path)
+
+    # 异常处理测试
+    def test_read_file_exception(self):
+        pfd.read_mesh_points('../outer_files/images/sss')
+
+    def test_show_single_face_crop(self):
+        pass
+
+    # 在png上显示三角面片区域，看是否符合预期
+    def test_show_single_face_area_in_png(self):
+        file_path = '../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01.png'
+        png = cv2.imread(file_path)
+        face_vertex_in_png = [[56, 953], [115, 1023], [134, 976]]
+        u_min = min(face_vertex_in_png[0][0], face_vertex_in_png[1][0], face_vertex_in_png[2][0])
+        v_min = min(face_vertex_in_png[0][1], face_vertex_in_png[1][1], face_vertex_in_png[2][1])
+        u_max = max(face_vertex_in_png[0][0], face_vertex_in_png[1][0], face_vertex_in_png[2][0])
+        v_max = max(face_vertex_in_png[0][1], face_vertex_in_png[1][1], face_vertex_in_png[2][1])
+        crop_range = [u_min, v_min, u_max, v_max]
+        crop_img = png[crop_range[1]:crop_range[3], crop_range[0]:crop_range[2]]
+        plt.imshow(crop_img, cmap="gray")
+        plt.show()

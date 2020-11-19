@@ -185,6 +185,9 @@ crops_v_scale_in_png = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
 # uvmap_png的长度和宽度
 uv_map_size = [0, 0]
 
+# face的索引 寻找bug时使用
+face_index = 1
+
 
 # 打印数据点
 def print_data_points(data_points):
@@ -232,7 +235,7 @@ def get_mapping_point_in_camera_plane(point, camera_plane_para):
     return point_
 
 
-# 全局变量中部分数据的由来（因为外参已经固定，所以部分数据基本不会改变，减少计算量）
+# 全局变量中部分数据的由来（在main函数中直接使用了）（因为外参已经固定，所以部分数据基本不会改变，减少计算量）
 def pre_process():
     # 求出六个相机在世界坐标系下的坐标
     cameras_coordinate = pfd.get_cameras_coordinate()
