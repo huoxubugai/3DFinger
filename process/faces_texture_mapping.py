@@ -89,7 +89,7 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
         return tl.map_vertex_to_texture[key]
 
 
-# 显示单个三角面片，用于debug
+# 显示单个三角面片，单纯用于debug，出现错误时注释掉即可
 def show_single_face_crop(face_vertex, camera_index, file_path):
     u_min = min(face_vertex[0][0], face_vertex[1][0], face_vertex[2][0])
     v_min = min(face_vertex[0][1], face_vertex[1][1], face_vertex[2][1])
@@ -102,9 +102,9 @@ def show_single_face_crop(face_vertex, camera_index, file_path):
     cv2.imwrite(file_path, crop_img)
     tl.face_index += 1
     '这个index可以让我们指定在代码运行到第index个三角面片的时候，方便我们调试'
-    if tl.face_index >= 715:
-        plt.imshow(crop_img, cmap="gray")  # todo 为什么这样会变黑
-        plt.show()
+    # if tl.face_index >= 715:
+    #     plt.imshow(crop_img, cmap="gray")  # todo 为什么这样会变黑
+    #     plt.show()
     # plt.imshow(crop_img, cmap="gray")  # todo 为什么这样会变黑
     # plt.show()
 
@@ -196,8 +196,8 @@ def get_png_uv_from_crops(faces_point):
     i = 1  # vt_index 按照obj规定 ，从1开始
     # 用index方便定位三角面片调试
     for index in range(0, len(faces_point)):
-        if index >= 719:
-            print("debug")
+        # if index >= 719:
+        #     print("debug")
         face = faces_point[index]
         camera_index = face[3]
         vt_in_face = []
@@ -230,10 +230,11 @@ def get_uv_from_png(cur_texture, camera_index):
     # cur_height += (cur_texture[1] - tl.bmp_crop_ranges[camera_index][1])  # 再加上自身的高度
     # 下面的代码比上面注释掉的更快，避免每次都需要重复计算累积的高度
     cur_height = (cur_texture[1] - tl.bmp_crop_ranges[camera_index][1]) / tl.uv_map_size[1]
-    png_v = tl.crops_v_scale_in_png[camera_index][0] + cur_height
-    if png_v < tl.crops_v_scale_in_png[camera_index][0] or png_v > tl.crops_v_scale_in_png[camera_index][1]:
-        # 运行到这里说明出现了错误的范围
-        print(png_v, camera_index)
+    png_v_error = tl.crops_v_scale_in_png[camera_index][0] + cur_height  # 注意这是错误的v，因为uv坐标原点在左下角而不是左上角！
+    png_v = 1 - png_v_error  # 正确的v由于v坐标轴相反，所以用1-原来的值
+    # if png_v < tl.crops_v_scale_in_png[camera_index][0] or png_v > tl.crops_v_scale_in_png[camera_index][1]:
+    #     # 运行到这里说明出现了错误的范围
+    #     print(png_v, camera_index)
     return [png_u, png_v]
 
 
@@ -259,8 +260,6 @@ def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
             lines.append(cur_str)
         mtl_info2 = 'usemtl material_1' + '\n'
         lines.append(mtl_info2)
-        # 在底部更新三角面片数据，todo 由于之前已经有一个for line in f:，因此运行到这个for时会丢失一个line！！！
-        # todo  避免空格，适配可能出现的各种文件格式！
 
         # todo 缓兵之计，后续再改
         face = line.split(" ")  # 先将字符串按空格切分成数组,取出末尾换行符，再进行拼接
@@ -268,8 +267,9 @@ def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
         cur_str = 'f' + " " + face[1] + "/" + str(vt_index[0]) + \
                   " " + face[2] + "/" + str(vt_index[1]) + " " + \
                   face[3].replace('\n', '') + "/" + str(vt_index[2]) + '\n'
-        # print(line)
         lines.append(cur_str)
+        # 在底部更新三角面片数据，todo 由于之前已经有一个for line in f:，因此运行到这个for时会丢失一个line！！！
+        # todo  避免空格，适配可能出现的各种文件格式！
         for line, vt_index in zip(f, vt_list[1:]):
             face = line.split(" ")  # 先将字符串按空格切分成数组,取出末尾换行符，再进行拼接
             cur_str = 'f' + " " + face[1] + "/" + str(vt_index[0]) + \

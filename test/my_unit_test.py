@@ -225,3 +225,41 @@ class Test(unittest.TestCase):
         crop_img = png[crop_range[1]:crop_range[3], crop_range[0]:crop_range[2]]
         plt.imshow(crop_img, cmap="gray")
         plt.show()
+
+    # 根据uv信息，在png中以白色点的形式显示，查看uv信息是否正确
+    def test_show_uv_in_png(self):
+        # 读取uv信息
+        uv_file = '../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01_new.obj'
+        uv_list = []
+        with open(uv_file) as f:
+            for line in f:
+                str = line.split(" ")
+                if str[0] == 'vt':
+                    cur_uv = [str[1], str[2].replace('\n', '')]
+                    uv_list.append(cur_uv)
+                else:
+                    continue
+
+        # 读取png
+        png_file = '../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01.png'
+        png = cv2.imread(png_file)
+        v_height = png.shape[0]
+        u_width = png.shape[1]
+        for uv in uv_list:
+            uv = [float(uv[0]), float(uv[1])]
+            u = uv[0] * u_width
+            v = uv[1] * v_height
+            u = int(u)
+            v = int(v)
+            if u <= 2:
+                u = 2
+            if v <= 2:
+                v = 2
+            if u >= u_width - 3:
+                u = u_width - 3
+            if v >= v_height - 3:
+                v = v_height - 3
+            # 将这个坐标置为白色
+            # png[v - 1][u - 1] = [255, 0, 0]
+            cv2.rectangle(png, (u - 2, v - 2), (u + 2, v + 2), (255, 0, 0), 1)
+        cv2.imwrite('../outer_files/LFMB_Visual_Hull_Meshes256/uv_in_png.png', png)
