@@ -243,80 +243,44 @@ def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
     mtl_info = 'mtllib saved_spot.mtl' + '\n'
     lines.append(mtl_info)
     with open(file_path + '.obj', 'r') as f:
+        content = f.readlines()
+        index = 0  # 记录位置
         # 先添加首部的顶点数据
-        # todo 要考虑第一行不为数据行或者中间突然出现空行等情况
-        for line in f:
-            # line = line[0:-1] + " " + str(gray) + '\n'
-            # line = line[0:-1] +
-            # print(line)
-            if line[0] == 'v':
-                lines.append(line)
+        for index in range(0, len(content)):
+            if index <= 5 and content[index] and content[index][0] != 'v':  # 避免开头可能出现的信息
+                continue
+            if content[index][0] == 'v':
+                lines.append(content[index])
                 continue
             else:
                 break
+
         # 在中部放入计算出来的uv信息
         for uv_val in uv_val_in_obj:
             cur_str = 'vt' + " " + str(uv_val[0]) + " " + str(uv_val[1]) + '\n'
             lines.append(cur_str)
         mtl_info2 = 'usemtl material_1' + '\n'
         lines.append(mtl_info2)
-
-        # todo 缓兵之计，后续再改
-        face = line.split(" ")  # 先将字符串按空格切分成数组,取出末尾换行符，再进行拼接
-        vt_index = vt_list[0]
-        cur_str = 'f' + " " + face[1] + "/" + str(vt_index[0]) + \
-                  " " + face[2] + "/" + str(vt_index[1]) + " " + \
-                  face[3].replace('\n', '') + "/" + str(vt_index[2]) + '\n'
-        lines.append(cur_str)
-        # 在底部更新三角面片数据，todo 由于之前已经有一个for line in f:，因此运行到这个for时会丢失一个line！！！
-        # todo  避免空格，适配可能出现的各种文件格式！
-        for line, vt_index in zip(f, vt_list[1:]):
+        # 在底部更新三角面片数据
+        i = index
+        # 避免顶点数据和面片数据之间可能出现的一行或多行空格（5行之下）
+        while i < index + 5 and content[i] and content[i][0] != 'f':
+            i += 1
+            continue
+        for i, j in zip(range(i, len(content)), range(0, len(vt_list))):
+            line = content[i]
+            # if i <= i + 5 and line[0] != 'f':
+            #     j -= 1
+            #     continue
+            vt_index = vt_list[j]
             face = line.split(" ")  # 先将字符串按空格切分成数组,取出末尾换行符，再进行拼接
             cur_str = 'f' + " " + face[1] + "/" + str(vt_index[0]) + \
                       " " + face[2] + "/" + str(vt_index[1]) + " " + \
                       face[3].replace('\n', '') + "/" + str(vt_index[2]) + '\n'
-            # print(line)
             lines.append(cur_str)
+
     with open(file_path + '_new.obj', 'w+') as f_new:
         f_new.writelines(lines)
 
 
-def write_uv_to_obj2(uv_val_in_obj, vt_list, file_path):
-    lines = []
-    mtl_info = 'mtllib saved_spot.mtl' + '\n'
-    lines.append(mtl_info)
-    with open(file_path + '.obj', 'r') as f:
-        content = f.read()
-        for line in content:
-            if line[0] == 'v':
-                lines.append(line)
-                continue
-            else:
-                break
-        # 先添加首部的顶点数据
-        for line in f:
-            # line = line[0:-1] + " " + str(gray) + '\n'
-            # line = line[0:-1] +
-            # print(line)
-            if line[0] == 'v':
-                lines.append(line)
-                continue
-            else:
-                break
-        # 在中部放入计算出来的uv信息
-        for uv_val in uv_val_in_obj:
-            cur_str = 'vt' + " " + str(uv_val[0]) + " " + str(uv_val[1]) + '\n'
-            lines.append(cur_str)
-        mtl_info2 = 'usemtl material_1' + '\n'
-        lines.append(mtl_info2)
-        # 在底部更新三角面片数据，todo 由于之前已经有一个for line in f:，因此运行到这个for时会丢失一个line！！！
-        # todo  避免空格，适配可能出现的各种文件格式！
-        for line, vt_index in zip(f, vt_list):
-            face = line.split(" ")  # 先将字符串按空格切分成数组,取出末尾换行符，再进行拼接
-            cur_str = 'f' + " " + face[1] + "/" + str(vt_index[0]) + \
-                      " " + face[2] + "/" + str(vt_index[1]) + " " + \
-                      face[3].replace('\n', '') + "/" + str(vt_index[2]) + '\n'
-            # print(line)
-            lines.append(cur_str)
-    with open(file_path + '_new.obj', 'w+') as f_new:
-        f_new.writelines(lines)
+

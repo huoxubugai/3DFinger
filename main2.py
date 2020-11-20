@@ -18,7 +18,7 @@ if __name__ == '__main__':
     file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01'
     obj_suffix = '.obj'
     # 拿到mesh所有顶点数据
-    data_points = pfd.read_mesh_points(file_path + obj_suffix)
+    data_points, face_start_index = pfd.read_mesh_points(file_path + obj_suffix)
     # 求出所有顶点对应的中心点O
     center_point = pfd.get_center_point(data_points)
     # 获取相机平面的参数ax+by+cz+d=0,直接使用计算好的数据
@@ -32,6 +32,6 @@ if __name__ == '__main__':
                                                                        tl.cameras_coordinate_mapping, data_points)
 
     # 纹理映射部分，这里和之前先后顺序不同，要从三角面片出发，得到每个面对应的相机，再将三角面片上的三个顶点投影到这个相机对应的bmp图片上，找到uv值
-    faces_point = pfd.read_mesh_faces(file_path + obj_suffix)  # 读取obj中face的顶点数据
+    faces_point = pfd.read_mesh_faces(file_path + obj_suffix,face_start_index)  # 读取obj中face的顶点数据
     faces_texture = ftm.mapping_faces_gray(data_points_contain_camera, faces_point, file_path)  # 拿到所有面的纹理区域
     print("程序执行时间为:", time.time() - start, "秒")

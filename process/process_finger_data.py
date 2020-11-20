@@ -5,7 +5,8 @@ import sys
 
 # 根据obj文件获得mesh的顶点数据
 # 数据点的数据结构选择list而不是数组,方便后续拓展
-def read_mesh_points(obj_file_path):
+# todo 这里也要适配文件可能出现的格式问题
+def read_mesh_points2(obj_file_path):
     points = []
     # try:
     with open(obj_file_path) as file:
@@ -25,15 +26,38 @@ def read_mesh_points(obj_file_path):
     return points
 
 
+def read_mesh_points(obj_file_path):
+    points = []
+    # try:
+    with open(obj_file_path) as file:
+        lines = file.readlines()
+        i = 0
+        for i in range(0, len(lines)):
+            if not lines[i]:
+                break
+            strs = lines[i].split(" ")
+            if i <= 5 and strs[0] != "v":  # 避免开头可能出现的信息
+                continue
+            if strs[0] == 'v':
+                cur = [float(strs[1]), float(strs[2]), float(strs[3])]
+                points.append(cur)
+            else:
+                break
+    # except Exception as e:
+    #     print("错误:", e)
+    #     sys.exit(1)
+    return points, i  # 这里返回的i方便后续直接定位面所在的数据，避免重复遍历
+
+
 # 根据obj文件获得mesh的面数据
-def read_mesh_faces(obj_file_path):
+def read_mesh_faces(obj_file_path, face_start_index):
     with open(obj_file_path) as file:
         faces = []
-        while 1:
-            line = file.readline()
-            if not line:
+        lines = file.readlines()
+        for i in range(face_start_index, len(lines)):
+            if not lines[i]:
                 break
-            strs = line.split(" ")
+            strs = lines[i].split(" ")
             if strs[0] == "v" or strs[0] == "\n":
                 continue
             elif strs[0] == "f":
