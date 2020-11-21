@@ -127,8 +127,11 @@ def crop_bmp_to_png(file_path):
         cur_crop_bmp = crop_bmp(cur_crop_range, i, file_path)
         # 将crop出的图放入png中
         put_crop_into_png(cur_crop_bmp, uv_map_png, i)
+    # resize成1280*1600大小
+    size = [1280, 1600]
+    png = resize_png(uv_map_png, size)  # 造成的形变是否会影响结果
     # 将png写入本地
-    cv2.imwrite(file_path + '.png', uv_map_png)
+    cv2.imwrite(file_path + '.png', png)
 
 
 # 计算crop出的图片宽度和高度
@@ -238,6 +241,11 @@ def get_uv_from_png(cur_texture, camera_index):
     return [png_u, png_v]
 
 
+def resize_png(png, size):
+    resize_res = cv2.resize(png, (size[0], size[1]), interpolation=cv2.INTER_AREA)  # interpolation为插值算法
+    return resize_res
+
+
 def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
     lines = []
     mtl_info = 'mtllib saved_spot.mtl' + '\n'
@@ -266,7 +274,6 @@ def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
         # 避免顶点数据和面片数据之间可能出现的一行或多行空格（5行之下）
         while i < index + 5 and content[i] and content[i][0] != 'f':
             i += 1
-            continue
         for i, j in zip(range(i, len(content)), range(0, len(vt_list))):
             line = content[i]
             # if i <= i + 5 and line[0] != 'f':
@@ -281,6 +288,3 @@ def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
 
     with open(file_path + '_new.obj', 'w+') as f_new:
         f_new.writelines(lines)
-
-
-

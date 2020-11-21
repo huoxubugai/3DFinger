@@ -5,27 +5,6 @@ import sys
 
 # 根据obj文件获得mesh的顶点数据
 # 数据点的数据结构选择list而不是数组,方便后续拓展
-# todo 这里也要适配文件可能出现的格式问题
-def read_mesh_points2(obj_file_path):
-    points = []
-    # try:
-    with open(obj_file_path) as file:
-        while 1:
-            line = file.readline()
-            if not line:
-                break
-            strs = line.split(" ")
-            if strs[0] == "v":
-                cur = [float(strs[1]), float(strs[2]), float(strs[3])]
-                points.append(cur)
-            else:
-                break
-    # except Exception as e:
-    #     print("错误:", e)
-    #     sys.exit(1)
-    return points
-
-
 def read_mesh_points(obj_file_path):
     points = []
     # try:

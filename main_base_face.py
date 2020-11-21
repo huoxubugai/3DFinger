@@ -2,7 +2,7 @@
 """
 @Time ： 2020/11/13 14:27
 @Auth ： 零分
-@File ：main2.py
+@File ：main_base_face.py
 @IDE ：PyCharm
 @github:https://github.com/huoxubugai/3DFinger
 """

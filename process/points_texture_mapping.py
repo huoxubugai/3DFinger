@@ -57,7 +57,6 @@ def mapping_single_point_gray(point, pic_path_prefix):
     u = point[4]
     v = point[5]
     if u > 1280:
-        print(u)
         u = 1280
     if u <= 0:
         u = 1
@@ -88,12 +87,23 @@ def get_pic_gray(pic_file_path, camera_index, u, v):
 def write_gray_to_obj(points_gray, obj_file_path):
     lines = []
     with open(obj_file_path + '.obj', 'r') as f:
-        for line, gray in zip(f, points_gray):
-            # line = line[0:-1] + " " + str(gray) + '\n'
+        content = f.readlines()
+        index = 0  # 记录位置
+        # 跳过开头可能出现的几行信息
+        while index < 5 and content[index] and content[index][0] != 'v':  # 避免开头可能出现的信息
+            index += 1
+        for index, j in zip(range(index, len(content)), range(0, len(points_gray))):
+            line = content[index]
+            gray = points_gray[j]
             line = line[0:-1] + " " + str(gray[0]) + " " + str(gray[1]) + " " + str(gray[2]) + '\n'
             lines.append(line)
-        # todo  这里应该也丢失了一行line
-        for line in f:  # 写入剩下的数据
+        index += 1
+        i = index
+        # 跳过顶点数据和面数据之间可能出现的空行
+        while index < i + 5 and content[index] and content[index][0] != 'f':
+            index += 1
+        for index in range(index, len(content)):
+            line = content[index]
             lines.append(line)
     with open(obj_file_path + '_new.obj', 'w+') as f_new:
         f_new.writelines(lines)

@@ -2,7 +2,7 @@
 """
 @Time ： 2020/11/13 14:27
 @Auth ： 零分
-@File ：main.py
+@File ：main_base_vertex.py
 @IDE ：PyCharm
 @github:https://github.com/huoxubugai/3DFinger
 """
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     uv_file_path = file_path + '.txt'
     # todo 文件读取异常处理
     # 拿到mesh所有顶点数据
-    data_points = pfd.read_mesh_points(file_path + obj_suffix)  # 数据点的数据结构选择list而不是数组,方便后续改动
+    data_points, _ = pfd.read_mesh_points(file_path + obj_suffix)  # 数据点的数据结构选择list而不是数组,方便后续改动
     # 求出所有顶点对应的中心点O
     center_point = pfd.get_center_point(data_points)
     # 获取相机平面的参数ax+by+cz+d=0
