@@ -122,9 +122,15 @@ def crop_bmp_to_png(file_path):
     tl.uv_map_size[:] = png_width, png_height
     # 计算出crop的v在png中所占的比重范围
     calculate_crop_v_scale_in_png()
+    target_gray = 0
     for i in range(0, 6):
         cur_crop_range = tl.bmp_crop_ranges[i]
         cur_crop_bmp = crop_bmp(cur_crop_range, i, file_path)
+        # todo  平均灰度值 将A相机的crop作为灰度值基准，其他相机的crop平均到该基准
+        if i == 0:
+            target_gray = get_average_gray(cur_crop_bmp)
+        else:
+            cur_crop_bmp = average_png_gray(cur_crop_bmp, target_gray)
         # 将crop出的图放入png中
         put_crop_into_png(cur_crop_bmp, uv_map_png, i)
     # resize成1280*1600大小
@@ -177,6 +183,29 @@ def crop_bmp(crop_range, camera_index, file_path):
     # cv2.rectangle(cur_img, (crop_range[0], crop_range[1]), (crop_range[2], crop_range[3]), (255, 0, 0), 1)
     # cv2.imshow("rectangle", cur_img)
     return crop_img
+
+
+# 计算图片平均灰度值，但不计算灰度值为0的情况
+def get_average_gray(png):
+    size = png.shape[0] * png.shape[1]
+    sum_gray = 0
+    for i in range(0, png.shape[0]):
+        for j in range(0, png.shape[1]):
+            if png[i][j] == 0:
+                size -= 1
+            else:
+                sum_gray += png[i][j]
+    average_gray = sum_gray / size
+    return int(average_gray)
+
+
+# 将当前图片灰度值平均到指定的灰度值
+def average_png_gray(cur_crop_bmp, target_gray):
+    cur_average_gray = get_average_gray(cur_crop_bmp)
+    coefficient = float(target_gray / cur_average_gray)
+    coefficient = round(coefficient, 2)
+    cur_crop_bmp = cur_crop_bmp * coefficient
+    return cur_crop_bmp
 
 
 def put_crop_into_png(crop_pic, uv_map_png, camera_index):

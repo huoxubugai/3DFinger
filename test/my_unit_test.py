@@ -6,6 +6,7 @@ from tool import read_24bit_bmp as rbm
 import cv2
 import time
 import numpy as np
+from process import faces_texture_mapping as ftm
 
 
 class Test(unittest.TestCase):
@@ -263,3 +264,11 @@ class Test(unittest.TestCase):
             # png[v - 1][u - 1] = [255, 0, 0]
             cv2.rectangle(png, (u - 2, v - 2), (u + 2, v + 2), (255, 0, 0), 1)
         cv2.imwrite('../outer_files/LFMB_Visual_Hull_Meshes256/uv_in_png.png', png)
+
+    def test_get_average_gray(self):
+        png = np.array([[1, 2], [3, 4]])
+        gray = ftm.get_average_gray(png)
+        self.assertEqual(gray, 2.5)
+        png2 = np.array([[0, 1, 2], [3, 4, 5]])
+        gray2 = ftm.get_average_gray(png2)
+        self.assertEqual(gray2, 3)
