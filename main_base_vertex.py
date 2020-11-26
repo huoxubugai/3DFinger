@@ -33,12 +33,12 @@ if __name__ == '__main__':
     data_points_mapping = pfd.get_data_points_mapping(data_points, camera_plane_para)
     # 数据预处理完毕，寻找每个点对应的相机
     # 这里注意找到相机之后需要添加到源数据点上，而不是映射后的数据点
-    data_points_contain_camera = pfd.get_data_points_from_which_camera(center_point_mapping, data_points_mapping,
-                                                                       tl.cameras_coordinate_mapping, data_points)
+    camera_index_and_uv = pfd.get_data_points_from_which_camera2(center_point_mapping, data_points_mapping,
+                                                                 tl.cameras_coordinate_mapping, data_points)
     # 得到每个点是由什么相机拍摄之后，进行纹理映射部分
     # 得到每个点对应二维图像上的u，v值
-    uv_for_points = tm.get_uv_for_points(data_points_contain_camera)
-    points_gray = tm.mapping_points_gray(uv_for_points, file_path)
+    camera_index_and_uv = tm.get_uv_for_points(data_points, camera_index_and_uv)
+    points_gray = tm.mapping_points_gray(data_points, camera_index_and_uv, file_path)
     # 拿到灰度值list 写入到obj文件中
     tm.write_gray_to_obj(points_gray, file_path)
     print(time.time() - start)

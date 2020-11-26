@@ -7,16 +7,15 @@ import cv2
 # 根据处理好的数据和相机的内外参进行处理，后续可换成文件名形式进行读取数据
 # 因为已经事先根据内外参得到了相机的投影矩阵，因此直接用投影矩阵计算
 # 获取三维点在二维图像上的位置（u,v）
-def get_uv_for_points(data_points_contain_camera):
-    for i in range(len(data_points_contain_camera)):
-        point_data_contain_uv = get_texture_for_single_point(data_points_contain_camera[i])
-        data_points_contain_camera[i] = point_data_contain_uv
-    return data_points_contain_camera
+def get_uv_for_points(data_points, camera_index_and_uv):
+    for i in range(len(data_points)):
+        cur_uv = get_texture_for_single_point(data_points[i], camera_index_and_uv[i][0])
+        camera_index_and_uv[i][1] = cur_uv[0]
+        camera_index_and_uv[i][2] = cur_uv[1]
+    return camera_index_and_uv
 
 
-def get_texture_for_single_point(point_data):
-    # 获取相机下标索引,通过索引下标获得对应的投影矩阵
-    camera_index = point_data[3]
+def get_texture_for_single_point(point_data, camera_index):
     '这里要注意用的是哪个投影矩阵'
     camera_projection_mat = tl.all_camera_projection_mat[camera_index]
     camera_projection_mat = np.mat(camera_projection_mat)
@@ -32,30 +31,30 @@ def get_texture_for_single_point(point_data):
     # uv 取整
     u = round(u)  # todo  后续做插值而不是取整
     v = round(v)
-    point_data.append(u)
-    point_data.append(v)
-    return point_data
+    # point_data.append(u)
+    # point_data.append(v)
+    return [u, v]
 
 
 # 获取所有数据点的灰度值
-def mapping_points_gray(uv_points, file_path):
+def mapping_points_gray(data_points, camera_index_and_uv, file_path):
     path_str = file_path.split("/")
     picture_path_prefix = 'outer_files/images/' + path_str[2]  # todo 注意这里的索引会随着文件路径改变而改变
     points_gray = []
-    for i in range(len(uv_points)):
-        cur_gray = mapping_single_point_gray(uv_points[i], picture_path_prefix)
+    for i in range(len(data_points)):
+        cur_gray = mapping_single_point_gray(data_points[i], camera_index_and_uv[i], picture_path_prefix)
         points_gray.append(cur_gray)
     return points_gray
 
 
 # 获取单个点的灰度值
-def mapping_single_point_gray(point, pic_path_prefix):
-    camera_index = point[3]
-    camera_index = round(camera_index)
+def mapping_single_point_gray(point, camera_index_and_uv, pic_path_prefix):
+    camera_index = camera_index_and_uv[0]
+    # camera_index = round(camera_index)
     camera_name = tl.camera_index_to_name[camera_index]
     pic_file_path = pic_path_prefix + '_' + camera_name + '.bmp'  # 拼接文件名
-    u = point[4]
-    v = point[5]
+    u = camera_index_and_uv[1]
+    v = camera_index_and_uv[2]
     if u > 1280:
         u = 1280
     if u <= 0:

@@ -155,6 +155,18 @@ def get_data_points_from_which_camera(center_point, data_points_mapping, cameras
     return camera_index_to_points  # 这里返回的应该是源数据 而不是映射数据
 
 
+def get_data_points_from_which_camera2(center_point, data_points_mapping, cameras_coordinate_mapping, data_points):
+    camera_index_and_uv = np.zeros([len(data_points), 3], dtype=np.int)
+    for i in range(len(data_points_mapping)):
+        cur_target_camera_index = get_single_point_from_which_camera(center_point, data_points_mapping[i],
+                                                                     cameras_coordinate_mapping)
+        camera_index_and_uv[i][0] = cur_target_camera_index
+        # data_points[i].append(cur_target_camera_index)  # 将找到的相机添加在当前数据后面
+        # camera_index_count[cur_target_camera_index] += 1
+    # print("每个相机出现的次数为：", camera_index_count)  # 分别为38, 49, 51, 36, 40, 42
+    return camera_index_and_uv  # 这里返回的应该是源数据 而不是映射数据
+
+
 # 判断mesh上单一顶点来自哪个摄像机拍摄（与哪个摄像机最近）
 # 根据ON向量与OA,OB,...向量夹角比较，夹角越小，余弦值越大，即为所需
 def get_single_point_from_which_camera(center_point, cur_point, cameras_coordinate):
