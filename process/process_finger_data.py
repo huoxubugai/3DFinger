@@ -25,6 +25,7 @@ def read_mesh_points(obj_file_path):
     # except Exception as e:
     #     print("错误:", e)
     #     sys.exit(1)
+    points = np.array(points)
     return points, i  # 这里返回的i方便后续直接定位面所在的数据，避免重复遍历
 
 
@@ -44,7 +45,7 @@ def read_mesh_faces(obj_file_path, face_start_index):
                 faces.append(cur)
             else:
                 break
-
+    faces = np.array(faces)
     return faces
 
 
@@ -142,13 +143,16 @@ def get_data_points_from_which_camera(center_point, data_points_mapping, cameras
 
     # 计算一下每个相机拥有的点的个数，判断是否均衡(发现基本均衡)
     # camera_index_count = [0, 0, 0, 0, 0, 0]
+    # 相机与点的一一对应数组(更改输入输出格式后，由于数组不可拓展，创建新的相机数组与点的数组进行对应)
+    camera_index_to_points = np.zeros(len(data_points), dtype=np.int)
     for i in range(len(data_points_mapping)):
         cur_target_camera_index = get_single_point_from_which_camera(center_point, data_points_mapping[i],
                                                                      cameras_coordinate_mapping)
-        data_points[i].append(cur_target_camera_index)  # 将找到的相机添加在当前数据后面
+        camera_index_to_points[i] = cur_target_camera_index
+        # data_points[i].append(cur_target_camera_index)  # 将找到的相机添加在当前数据后面
         # camera_index_count[cur_target_camera_index] += 1
     # print("每个相机出现的次数为：", camera_index_count)  # 分别为38, 49, 51, 36, 40, 42
-    return data_points  # 这里返回的应该是源数据 而不是映射数据
+    return camera_index_to_points  # 这里返回的应该是源数据 而不是映射数据
 
 
 # 判断mesh上单一顶点来自哪个摄像机拍摄（与哪个摄像机最近）

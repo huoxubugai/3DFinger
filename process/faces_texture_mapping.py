@@ -1,47 +1,53 @@
 import numpy as np
 from tool import tools as tl
 import cv2
+import time
 import matplotlib.pyplot as plt
 
 
 # 面的纹理映射
-def mapping_faces_gray(data_points_contain_camera, faces_point, file_path):
+def mapping_faces_gray(data_points, camera_index_to_points, faces_point, file_path):
     # 得出每个三角面片都属于哪一个相机，两个点及以上属于一个相机，则该面属于该相机
-    faces_point_contain_camera = get_faces_belong_which_camera(data_points_contain_camera, faces_point)
+    camera_index_to_faces = get_faces_belong_which_camera(data_points, camera_index_to_points, faces_point)
+
     # todo 考虑是否需要将这个写入本地文件
     # 拿到三角面片对应的相机后，对该三角面片做相应图片的映射，三维——>二维
-    for face in faces_point_contain_camera:
-        get_texture_from_bmp(face, data_points_contain_camera, file_path)  # 会将所有三角面片对应点的纹理全放进哈希表中,同时对面片按相机分类
+    for face, camera_index in zip(faces_point, camera_index_to_faces):
+        get_texture_from_bmp(face, camera_index, data_points, file_path)  # 会将所有三角面片对应点的纹理全放进哈希表中,同时对面片按相机分类
+    start = time.time()
     # 根据全局变量bmp_crop_ranges，去对bmp图片做crop，然后放入uv map png图片中
     crop_bmp_to_png(file_path)
+
     # 对每个面进行遍历，获取面上的点再uvmap_png中的对应uv值，然后按预期格式会写到obj文件中
-    uv_val_in_obj, vt_list = get_png_uv_from_crops(faces_point)
+    uv_val_in_obj, vt_list = get_png_uv_from_crops(faces_point, camera_index_to_faces)
     write_uv_to_obj(uv_val_in_obj, vt_list, file_path)
 
 
 # 获得三角面片属于什么相机
-def get_faces_belong_which_camera(data_points_contain_camera, faces_point):
-    faces_point_contain_camera = []
-    for face in faces_point:
+def get_faces_belong_which_camera(data_points, camera_index_to_points, faces_point):
+    camera_index_to_faces = np.zeros(len(faces_point), dtype=int)
+    for i in range(0, len(faces_point)):
+        face = faces_point[i]
         face_with_camera = []
         for v in face:
-            camera_index = data_points_contain_camera[v - 1][3]  # 因为obj中的v都是从1开始的，因此减一
+            camera_index = camera_index_to_points[v - 1]  # 因为obj中的v都是从1开始的，因此减一
             face_with_camera.append(camera_index)
         max_count_camera = max(face_with_camera, key=face_with_camera.count)  # 得出列表中出现最多次数的相机索引
-        face.append(max_count_camera)
-        faces_point_contain_camera.append(face)
-    return faces_point_contain_camera
+        camera_index_to_faces[i] = max_count_camera
+        # face.append(max_count_camera)
+        # camera_index_to_faces.append(face)
+    return camera_index_to_faces
 
 
-def get_texture_from_bmp(face, data_points_contain_camera, file_path):
+def get_texture_from_bmp(face, camera_index, data_points, file_path):
     # 用face里面存储的点的索引，去data_points_contain_camera里拿到对应的数据点
-    camera_index = face[3]
+    # camera_index = face[3]
     # 将face根据不同的相机放进全局变量
     tl.faces_belong_camera[camera_index].append(face)  # 该变量目前还没有用到
     # todo 将单独每个三角面crop出来，看看纹理是否符合预期
     face_vertex = []
-    for vertex_index in face[0:3]:  # 注意这里只有前三个才是顶点索引
-        vertex_data = data_points_contain_camera[vertex_index - 1]
+    for vertex_index in face:  # 注意这里只有前三个才是顶点索引
+        vertex_data = data_points[vertex_index - 1]
         cur_vertex = get_texture_for_vertex(vertex_data, camera_index, vertex_index)
         face_vertex.append(cur_vertex)
     # 查看单一面片的纹理crop
@@ -123,6 +129,7 @@ def crop_bmp_to_png(file_path):
     # 计算出crop的v在png中所占的比重范围
     calculate_crop_v_scale_in_png()
     target_gray = 0
+    start = time.time()
     for i in range(0, 6):
         cur_crop_range = tl.bmp_crop_ranges[i]
         cur_crop_bmp = crop_bmp(cur_crop_range, i, file_path)
@@ -134,6 +141,8 @@ def crop_bmp_to_png(file_path):
         # 将crop出的图放入png中
         put_crop_into_png(cur_crop_bmp, uv_map_png, i)
     # resize成1280*1600大小
+    print(time.time() - start)
+
     size = [1280, 1600]
     png = resize_png(uv_map_png, size)  # 造成的形变是否会影响结果
     # 将png写入本地
@@ -185,17 +194,18 @@ def crop_bmp(crop_range, camera_index, file_path):
     return crop_img
 
 
-# 计算图片平均灰度值，但不计算灰度值为0的情况
+# 计算图片平均灰度值，如果不计算灰度值为0的情况，则效率会比较低(注释的代码)，因此考虑效率直接做平均
 def get_average_gray(png):
-    size = png.shape[0] * png.shape[1]
-    sum_gray = 0
-    for i in range(0, png.shape[0]):
-        for j in range(0, png.shape[1]):
-            if png[i][j] == 0:
-                size -= 1
-            else:
-                sum_gray += png[i][j]
-    average_gray = sum_gray / size
+    # size = png.shape[0] * png.shape[1]
+    # sum_gray = 0
+    # for i in range(0, png.shape[0]):
+    #     for j in range(0, png.shape[1]):
+    #         if png[i][j] == 0:
+    #             size -= 1
+    #         else:
+    #             sum_gray += png[i][j]
+    # average_gray = sum_gray / size
+    average_gray = np.mean(png)
     return int(average_gray)
 
 
@@ -222,7 +232,7 @@ def put_crop_into_png(crop_pic, uv_map_png, camera_index):
 
 
 # 获得obj中所需要的信息
-def get_png_uv_from_crops(faces_point):
+def get_png_uv_from_crops(faces_point, camera_index_to_faces):
     vt_list = []  # 每一行放在obj文件中f i/_ j/_ k/_
     vt_uv_val = []  # 存放uv具体信息  u,v:0->1
     i = 1  # vt_index 按照obj规定 ，从1开始
@@ -231,7 +241,8 @@ def get_png_uv_from_crops(faces_point):
         # if index >= 719:
         #     print("debug")
         face = faces_point[index]
-        camera_index = face[3]
+        # camera_index = face[3]
+        camera_index = camera_index_to_faces[index]
         vt_in_face = []
         for vertex in face[0:3]:
             key = str(camera_index) + "_" + str(vertex)
@@ -249,6 +260,8 @@ def get_png_uv_from_crops(faces_point):
         vt_list.append(vt_in_face)
     # tl.print_data_points(vt_uv_val)
     # tl.print_data_points(vt_list)
+    vt_uv_val = np.array(vt_uv_val)
+    vt_list = np.array(vt_list)
     return vt_uv_val, vt_list
 
 

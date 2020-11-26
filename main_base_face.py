@@ -28,10 +28,10 @@ if __name__ == '__main__':
     # 将mesh顶点数据中的所有顶点映射到相机平面
     data_points_mapping = pfd.get_data_points_mapping(data_points, camera_plane_para)
     # 数据预处理完毕，寻找每个点对应的相机；这里注意找到相机之后需要添加到源数据点上，而不是映射后的数据点
-    data_points_contain_camera = pfd.get_data_points_from_which_camera(center_point_mapping, data_points_mapping,
+    camera_index_to_points = pfd.get_data_points_from_which_camera(center_point_mapping, data_points_mapping,
                                                                        tl.cameras_coordinate_mapping, data_points)
 
     # 纹理映射部分，这里和之前先后顺序不同，要从三角面片出发，得到每个面对应的相机，再将三角面片上的三个顶点投影到这个相机对应的bmp图片上，找到uv值
     faces_point = pfd.read_mesh_faces(file_path + obj_suffix,face_start_index)  # 读取obj中face的顶点数据
-    faces_texture = ftm.mapping_faces_gray(data_points_contain_camera, faces_point, file_path)  # 拿到所有面的纹理区域
+    faces_texture = ftm.mapping_faces_gray(data_points,camera_index_to_points, faces_point, file_path)  # 拿到所有面的纹理区域
     print("程序执行时间为:", time.time() - start, "秒")
