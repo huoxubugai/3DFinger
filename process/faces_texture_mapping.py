@@ -299,7 +299,7 @@ def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
         index = 0  # 记录位置
         # 先添加首部的顶点数据
         for index in range(0, len(content)):
-            if index <= 5 and content[index] and content[index][0] != 'v':  # 避免开头可能出现的信息
+            if index <= tl.skip_lines_count_in_obj and content[index] and content[index][0] != 'v':  # 避免开头可能出现的信息
                 continue
             if content[index][0] == 'v':
                 lines.append(content[index])
@@ -315,8 +315,8 @@ def write_uv_to_obj(uv_val_in_obj, vt_list, file_path):
         lines.append(mtl_info2)
         # 在底部更新三角面片数据
         i = index
-        # 避免顶点数据和面片数据之间可能出现的一行或多行空格（5行之下）
-        while i < index + 5 and content[i] and content[i][0] != 'f':
+        # 避免顶点数据和面片数据之间可能出现的一行或多行空格（20行之下）
+        while i < index + tl.skip_lines_count_in_obj and content[i] and content[i][0] != 'f':
             i += 1
         for i, j in zip(range(i, len(content)), range(0, len(vt_list))):
             line = content[i]

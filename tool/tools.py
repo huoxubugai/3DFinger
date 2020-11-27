@@ -191,6 +191,9 @@ uv_map_size = [0, 0]
 # face的索引 寻找bug时使用
 face_index = 1
 
+# 跳过无关信息的行数，读取以及写入obj时，可能会出现注释的信息，需要跳过,目前定为30行以内的信息都可以跳过，可根据需求更改
+skip_lines_count_in_obj = 30
+
 
 # 打印数据点
 def print_data_points(data_points):

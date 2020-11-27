@@ -15,7 +15,7 @@ def read_mesh_points(obj_file_path):
             if not lines[i]:
                 break
             strs = lines[i].split(" ")
-            if i <= 5 and strs[0] != "v":  # 避免开头可能出现的信息
+            if i <= tl.skip_lines_count_in_obj and strs[0] != "v":  # 避免开头可能出现的信息
                 continue
             if strs[0] == 'v':
                 cur = [float(strs[1]), float(strs[2]), float(strs[3])]
@@ -38,7 +38,7 @@ def read_mesh_faces(obj_file_path, face_start_index):
             if not lines[i]:
                 break
             strs = lines[i].split(" ")
-            if strs[0] == "v" or strs[0] == "\n":
+            if strs[0] == "v" or strs[0] == "\n" or strs[0] == '#':
                 continue
             elif strs[0] == "f":
                 cur = [int(strs[1]), int(strs[2]), int(strs[3])]
