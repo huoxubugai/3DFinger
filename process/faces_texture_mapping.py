@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # 面的纹理映射
 def mapping_faces_gray(data_points, camera_index_to_points, faces_point, file_path):
     # 得出每个三角面片都属于哪一个相机，两个点及以上属于一个相机，则该面属于该相机
-    camera_index_to_faces = get_faces_belong_which_camera(data_points, camera_index_to_points, faces_point)
+    camera_index_to_faces = get_faces_belong_which_camera(camera_index_to_points, faces_point)
 
     # todo 考虑是否需要将这个写入本地文件
     # 拿到三角面片对应的相机后，对该三角面片做相应图片的映射，三维——>二维
@@ -24,7 +24,7 @@ def mapping_faces_gray(data_points, camera_index_to_points, faces_point, file_pa
 
 
 # 获得三角面片属于什么相机
-def get_faces_belong_which_camera(data_points, camera_index_to_points, faces_point):
+def get_faces_belong_which_camera(camera_index_to_points, faces_point):
     camera_index_to_faces = np.zeros(len(faces_point), dtype=int)
     for i in range(0, len(faces_point)):
         face = faces_point[i]
@@ -60,7 +60,7 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
     key = str(camera_index) + "_" + str(vertex_index)
     # 判断哈希表中是否已经存在该数据，避免重复计算
     if key not in tl.map_vertex_to_texture.keys():
-        camera_projection_mat = tl.all_camera_projection_mat[camera_index]
+        camera_projection_mat = tl.all_camera_projection_mat_640_400[camera_index]
         camera_projection_mat = np.mat(camera_projection_mat)
         # 根据公式，将点的x,y,z坐标变为4*1矩阵形式，最后补1
         point_mat = np.mat([[vertex_data[0]],
@@ -76,13 +76,15 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
         u = round(u)
         v = round(v)
         # todo  uv 取整时不应该超过uv的应有范围，后续还是应该采用精度更高的做法，另外uv和像素矩阵的对应关系也应该确定是否是v-1.u-1
-        # 由于(u,v)只代表像素的列数与行数,而四舍五入存在误差，为了不超过uv的范围，将它强行归到1-1280范围，1-800范围
+        # 由于(u,v)只代表像素的列数与行数,而四舍五入存在误差，为了不超过uv的范围，将它强行归到1-1280/640范围，1-800/400范围
+        if u > tl.cur_pic_size[0]:
+            u = tl.cur_pic_size[0]
+        if v > tl.cur_pic_size[1]:
+            v = tl.cur_pic_size
         if u <= 0:
             u = 1
         if v <= 0:
             v = 1
-        if u >= 1280:
-            u = 1280
         # 根据相机索引和像素点下标拼接key值，然后将uv放到哈希表中
         tl.map_vertex_to_texture[key] = [u, v]
         # 同时更新全局变量中的uv crop范围 umin vmin umax vmax

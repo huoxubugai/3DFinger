@@ -17,7 +17,7 @@ def get_uv_for_points(data_points, camera_index_and_uv):
 
 def get_texture_for_single_point(point_data, camera_index):
     '这里要注意用的是哪个投影矩阵'
-    camera_projection_mat = tl.all_camera_projection_mat[camera_index]
+    camera_projection_mat = tl.all_camera_projection_mat_640_400[camera_index]
     camera_projection_mat = np.mat(camera_projection_mat)
     # 根据公式，将点的x,y,z坐标变为4*1矩阵形式，最后补1
     point_mat = np.mat([[point_data[0]],
@@ -55,8 +55,11 @@ def mapping_single_point_gray(point, camera_index_and_uv, pic_path_prefix):
     pic_file_path = pic_path_prefix + '_' + camera_name + '.bmp'  # 拼接文件名
     u = camera_index_and_uv[1]
     v = camera_index_and_uv[2]
-    if u > 1280:
-        u = 1280
+    # 归到正确的范围内
+    if u > tl.cur_pic_size[0]:
+        u = tl.cur_pic_size[0]
+    if v > tl.cur_pic_size[1]:
+        v = tl.cur_pic_size
     if u <= 0:
         u = 1
     if v <= 0:

@@ -105,17 +105,17 @@ class Test(unittest.TestCase):
 
     # 计算resize后的变化的投影矩阵
     def test_calculate_camera_projection_mat_after_resize(self):
-        camera_a_projection_mat_resize = tl.camera_a_inner_para_resize * tl.camera_a_outer_para
+        camera_a_projection_mat_resize = tl.camera_a_inner_para_640_400 * tl.camera_a_outer_para
         print(camera_a_projection_mat_resize, "\n")
-        camera_b_projection_mat_resize = tl.camera_b_inner_para_resize * tl.camera_b_outer_para
+        camera_b_projection_mat_resize = tl.camera_b_inner_para_640_400 * tl.camera_b_outer_para
         print(camera_b_projection_mat_resize, "\n")
-        camera_c_projection_mat_resize = tl.camera_c_inner_para_resize * tl.camera_c_outer_para
+        camera_c_projection_mat_resize = tl.camera_c_inner_para_640_400 * tl.camera_c_outer_para
         print(camera_c_projection_mat_resize, "\n")
-        camera_d_projection_mat_resize = tl.camera_d_inner_para_resize * tl.camera_d_outer_para
+        camera_d_projection_mat_resize = tl.camera_d_inner_para_640_400 * tl.camera_d_outer_para
         print(camera_d_projection_mat_resize, "\n")
-        camera_e_projection_mat_resize = tl.camera_e_inner_para_resize * tl.camera_e_outer_para
+        camera_e_projection_mat_resize = tl.camera_e_inner_para_640_400 * tl.camera_e_outer_para
         print(camera_e_projection_mat_resize, "\n")
-        camera_f_projection_mat_resize = tl.camera_f_inner_para_resize * tl.camera_f_outer_para
+        camera_f_projection_mat_resize = tl.camera_f_inner_para_640_400 * tl.camera_f_outer_para
         print(camera_f_projection_mat_resize)
 
     # 测试读取uv数据
