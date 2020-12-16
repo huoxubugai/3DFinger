@@ -43,7 +43,7 @@ def get_texture_from_bmp(face, camera_index, data_points, file_path):
     # 用face里面存储的点的索引，去data_points_contain_camera里拿到对应的数据点
     # camera_index = face[3]
     # 将face根据不同的相机放进全局变量
-    tl.faces_belong_camera[camera_index].append(face)  # 该变量目前还没有用到
+    # tl.faces_belong_camera[camera_index].append(face)  # 该变量目前还没有用到
     # todo 将单独每个三角面crop出来，看看纹理是否符合预期
     face_vertex = []
     for vertex_index in face:  # 注意这里只有前三个才是顶点索引

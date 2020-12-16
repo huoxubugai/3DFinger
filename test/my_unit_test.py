@@ -118,157 +118,231 @@ class Test(unittest.TestCase):
         camera_f_projection_mat_resize = tl.camera_f_inner_para_640_400 * tl.camera_f_outer_para
         print(camera_f_projection_mat_resize)
 
-    # 测试读取uv数据
-    def test_read_uv_points(self):
-        file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01'
-        suffix = ".txt"
-        uv_points = pfd.read_uv_points(file_path + suffix)
-        tl.print_data_points(uv_points)
+    # 计算双目标定情况下的投影矩阵
+    def test_calculate_camera_projection_mat2(self):
+        camera_a_projection_mat_resize = tl.camera_a_inner_para_640_400 * tl.a_outer_para_in_two_eye
+        print(camera_a_projection_mat_resize, "\n")
+        camera_b_projection_mat_resize = tl.camera_b_inner_para_640_400 * tl.b_outer_para_in_two_eye
+        print(camera_b_projection_mat_resize, "\n")
+        camera_c_projection_mat_resize = tl.camera_c_inner_para_640_400 * tl.c_outer_para_in_two_eye
+        print(camera_c_projection_mat_resize, "\n")
+        camera_d_projection_mat_resize = tl.camera_d_inner_para_640_400 * tl.d_outer_para_in_two_eye
+        print(camera_d_projection_mat_resize, "\n")
+        camera_e_projection_mat_resize = tl.camera_e_inner_para_640_400 * tl.e_outer_para_in_two_eye
+        print(camera_e_projection_mat_resize, "\n")
+        camera_f_projection_mat_resize = tl.camera_f_inner_para_640_400 * tl.f_outer_para_in_two_eye
+        print(camera_f_projection_mat_resize)
 
-    # 测试读取faces数据
-    def test_read_mesh_faces(self):
-        file_path = '../outer_files/LFMB_Visual_Hull_Meshes256/002_1_2_01'
-        suffix = ".obj"
-        faces_point = pfd.read_mesh_faces(file_path + suffix)
-        tl.print_data_points(faces_point)
+    # 计算双目标定下的相机世界坐标
+    def test_calculate_cameras_coordinate_in_two_eye(self):
+        camera_origins = [pfd.get_single_camera_origin(tl.a_outer_para_in_two_eye),
+                          pfd.get_single_camera_origin(tl.a_outer_para_in_two_eye * tl.b_outer_para_in_two_eye),
+                          pfd.get_single_camera_origin(
+                              tl.a_outer_para_in_two_eye * tl.b_outer_para_in_two_eye * tl.c_outer_para_in_two_eye),
+                          pfd.get_single_camera_origin(
+                              tl.a_outer_para_in_two_eye * tl.b_outer_para_in_two_eye * tl.c_outer_para_in_two_eye
+                              * tl.d_outer_para_in_two_eye),
+                          pfd.get_single_camera_origin(
+                              tl.a_outer_para_in_two_eye * tl.b_outer_para_in_two_eye * tl.c_outer_para_in_two_eye
+                              * tl.d_outer_para_in_two_eye
+                              * tl.e_outer_para_in_two_eye),
+                          pfd.get_single_camera_origin(
+                              tl.a_outer_para_in_two_eye * tl.b_outer_para_in_two_eye * tl.c_outer_para_in_two_eye
+                              * tl.d_outer_para_in_two_eye
+                              * tl.e_outer_para_in_two_eye * tl.f_outer_para_in_two_eye)]
+        # 将list转为array
+        camera_origins = np.array(camera_origins)
+        print(camera_origins)
 
-    # 测试用手写的函数读取位图
-    def test_read_bmp(self):
-        start = time.time()
-        file_path = '../outer_files/images/00_1_2_01_A.bmp'
-        img = rbm.read_rows(file_path)
-        print(time.time() - start)
-        plt.imshow(img, cmap="gray")
+    # 显示双目标定情况下得到的相机坐标平面
+    def test_show_camera_plane_in_two_eye(self):
+        camera_origins = [[3.90631157e+00, -1.57413557e+00, -4.54366107e+01],
+                          [-2.15407960e-01, -4.08714080e+01, -6.88472536e+01],
+                          [-5.05944563e-01, -7.93336050e+01, -4.79366356e+01],
+                          [4.28915506e-01, -7.68345933e+01, -5.63178130e-01],
+                          [-4.54618775e-02, -3.83748588e+01, 2.05200869e+01],
+                          [-4.80351541e-01, -3.47630417e+00, -1.83849892e+00]]
+
+        camera_origins = np.array(camera_origins)
+        x = camera_origins[:, 0]
+        y = camera_origins[:, 1]
+        z = camera_origins[:, 2]
+
+        ax = plt.subplot(111, projection='3d')
+        ax.scatter(x[:], y[:], z[:], c='r')
+        ax.set_zlabel('Z')  # 坐标轴
+        ax.set_ylabel('Y')
+        ax.set_xlabel('X')
         plt.show()
 
-    # 测试用cv内置库去读取位图
-    def test_read_bmp2(self):
-        start = time.time()
-        file_path = '../outer_files/images/003_1_2_01_A.bmp'
-        img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
-        print(time.time() - start)
-        plt.imshow(img, cmap="gray")
-        plt.show()
+        # 测试读取uv数据
 
-    def test_write_gray_to_bmp(self):
-        # 此时不需要关闭文件，a+ 可读可写（末尾追加再写），文件不存在就创建，r+可读可写不存在报错
-        fp = open("../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01.txt", "a+", encoding="utf-8")
-        line = fp.readline()
-        fp.write("hello python1")  # \n用来换行
-        fp.seek(0, 0)
-        data = fp.read()
-        fp.close()
-        print(data)
 
-    # 测试三维mesh与uv map（png）的纹理映射关系
-    def test_uv_map_relation_mesh(self):
-        uv_map_file = '../outer_files/Mesh_UVmap/saved_spot.png'
-        img = cv2.imread(uv_map_file)
-        pass
+def test_read_uv_points(self):
+    file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01'
+    suffix = ".txt"
+    uv_points = pfd.read_uv_points(file_path + suffix)
+    tl.print_data_points(uv_points)
 
-    # 测试uvmap空白png
-    def test_gene_uvmap_png(self):
-        uv_map_png = np.zeros((1280, 800), dtype=np.uint8)
-        crop_png = np.ones((300, 100), dtype=np.uint8)
-        uv_map_png[100:500, 200:400] = crop_png[0:, 0:]
-        plt.imshow(uv_map_png, cmap="gray")
-        plt.show()
-        # cv2.imshow('0', uv_map_png)
 
-    # 测试resize图像
-    def test_resize_bmp(self):
+# 测试读取faces数据
+def test_read_mesh_faces(self):
+    file_path = '../outer_files/LFMB_Visual_Hull_Meshes256/002_1_2_01'
+    suffix = ".obj"
+    faces_point = pfd.read_mesh_faces(file_path + suffix)
+    tl.print_data_points(faces_point)
+
+
+# 测试用手写的函数读取位图
+def test_read_bmp(self):
+    start = time.time()
+    file_path = '../outer_files/images/00_1_2_01_A.bmp'
+    img = rbm.read_rows(file_path)
+    print(time.time() - start)
+    plt.imshow(img, cmap="gray")
+    plt.show()
+
+
+# 测试用cv内置库去读取位图
+def test_read_bmp2(self):
+    start = time.time()
+    file_path = '../outer_files/images/003_1_2_01_A.bmp'
+    img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+    print(time.time() - start)
+    plt.imshow(img, cmap="gray")
+    plt.show()
+
+
+def test_write_gray_to_bmp(self):
+    # 此时不需要关闭文件，a+ 可读可写（末尾追加再写），文件不存在就创建，r+可读可写不存在报错
+    fp = open("../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01.txt", "a+", encoding="utf-8")
+    line = fp.readline()
+    fp.write("hello python1")  # \n用来换行
+    fp.seek(0, 0)
+    data = fp.read()
+    fp.close()
+    print(data)
+
+
+# 测试三维mesh与uv map（png）的纹理映射关系
+def test_uv_map_relation_mesh(self):
+    uv_map_file = '../outer_files/Mesh_UVmap/saved_spot.png'
+    img = cv2.imread(uv_map_file)
+    pass
+
+
+# 测试uvmap空白png
+def test_gene_uvmap_png(self):
+    uv_map_png = np.zeros((1280, 800), dtype=np.uint8)
+    crop_png = np.ones((300, 100), dtype=np.uint8)
+    uv_map_png[100:500, 200:400] = crop_png[0:, 0:]
+    plt.imshow(uv_map_png, cmap="gray")
+    plt.show()
+    # cv2.imshow('0', uv_map_png)
+
+
+# 测试resize图像
+def test_resize_bmp(self):
+    file_path = '../outer_files/images/001_1_2_01_F.bmp'
+    img = cv2.imread(file_path)
+    height, width = img.shape[:2]
+    resize_img = cv2.resize(img, (int(0.5 * width), int(0.5 * height)), interpolation=cv2.INTER_AREA)
+    cv2.imwrite('../outer_files/images/001_resize_F.bmp', resize_img)
+    # plt.imshow(img, cmap="gray")
+    plt.imshow(resize_img, cmap="gray")
+    plt.show()
+
+
+def test_crop_bmp(self):
+    path = 'C:/Users/10327/Desktop/testmesh/test2/test3/saved_spot.png'
+    img = cv2.imread(path)
+    crop_img = img[961:1362, :]
+    plt.imshow(crop_img, cmap="gray")
+    plt.show()
+
+
+# 测试点到空间平面的投影
+def test_get_mapping_point_in_camera_plane(self):
+    camera_plane_para = [1, 2, -1, 1]
+    point = [-1, 2, 0]
+    mapping_point = tl.get_mapping_point_in_camera_plane(point, camera_plane_para)
+    print(mapping_point)
+
+
+# 测试cv2.imread()是否会造成内存过大的问题
+def test_cv2_imread_memory(self):
+    for i in range(0, 4848):
         file_path = '../outer_files/images/001_1_2_01_F.bmp'
         img = cv2.imread(file_path)
-        height, width = img.shape[:2]
-        resize_img = cv2.resize(img, (int(0.5 * width), int(0.5 * height)), interpolation=cv2.INTER_AREA)
-        cv2.imwrite('../outer_files/images/001_resize_F.bmp', resize_img)
-        # plt.imshow(img, cmap="gray")
-        plt.imshow(resize_img, cmap="gray")
-        plt.show()
 
-    def test_crop_bmp(self):
-        path = 'C:/Users/10327/Desktop/testmesh/test2/test3/saved_spot.png'
-        img = cv2.imread(path)
-        crop_img = img[961:1362, :]
-        plt.imshow(crop_img, cmap="gray")
-        plt.show()
 
-    # 测试点到空间平面的投影
-    def test_get_mapping_point_in_camera_plane(self):
-        camera_plane_para = [1, 2, -1, 1]
-        point = [-1, 2, 0]
-        mapping_point = tl.get_mapping_point_in_camera_plane(point, camera_plane_para)
-        print(mapping_point)
+# 异常处理测试
+def test_read_file_exception(self):
+    pfd.read_mesh_points('../outer_files/images/sss')
 
-    # 测试cv2.imread()是否会造成内存过大的问题
-    def test_cv2_imread_memory(self):
-        for i in range(0, 4848):
-            file_path = '../outer_files/images/001_1_2_01_F.bmp'
-            img = cv2.imread(file_path)
 
-    # 异常处理测试
-    def test_read_file_exception(self):
-        pfd.read_mesh_points('../outer_files/images/sss')
+def test_show_single_face_crop(self):
+    pass
 
-    def test_show_single_face_crop(self):
-        pass
 
-    # 在png上显示三角面片区域，看是否符合预期
-    def test_show_single_face_area_in_png(self):
-        file_path = '../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01.png'
-        png = cv2.imread(file_path)
-        face_vertex_in_png = [[56, 953], [115, 1023], [134, 976]]
-        u_min = min(face_vertex_in_png[0][0], face_vertex_in_png[1][0], face_vertex_in_png[2][0])
-        v_min = min(face_vertex_in_png[0][1], face_vertex_in_png[1][1], face_vertex_in_png[2][1])
-        u_max = max(face_vertex_in_png[0][0], face_vertex_in_png[1][0], face_vertex_in_png[2][0])
-        v_max = max(face_vertex_in_png[0][1], face_vertex_in_png[1][1], face_vertex_in_png[2][1])
-        crop_range = [u_min, v_min, u_max, v_max]
-        crop_img = png[crop_range[1]:crop_range[3], crop_range[0]:crop_range[2]]
-        plt.imshow(crop_img, cmap="gray")
-        plt.show()
+# 在png上显示三角面片区域，看是否符合预期
+def test_show_single_face_area_in_png(self):
+    file_path = '../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01.png'
+    png = cv2.imread(file_path)
+    face_vertex_in_png = [[56, 953], [115, 1023], [134, 976]]
+    u_min = min(face_vertex_in_png[0][0], face_vertex_in_png[1][0], face_vertex_in_png[2][0])
+    v_min = min(face_vertex_in_png[0][1], face_vertex_in_png[1][1], face_vertex_in_png[2][1])
+    u_max = max(face_vertex_in_png[0][0], face_vertex_in_png[1][0], face_vertex_in_png[2][0])
+    v_max = max(face_vertex_in_png[0][1], face_vertex_in_png[1][1], face_vertex_in_png[2][1])
+    crop_range = [u_min, v_min, u_max, v_max]
+    crop_img = png[crop_range[1]:crop_range[3], crop_range[0]:crop_range[2]]
+    plt.imshow(crop_img, cmap="gray")
+    plt.show()
 
-    # 根据uv信息，在png中以白色点的形式显示，查看uv信息是否正确
-    def test_show_uv_in_png(self):
-        # 读取uv信息
-        uv_file = '../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01_new.obj'
-        uv_list = []
-        with open(uv_file) as f:
-            for line in f:
-                str = line.split(" ")
-                if str[0] == 'vt':
-                    cur_uv = [str[1], str[2].replace('\n', '')]
-                    uv_list.append(cur_uv)
-                else:
-                    continue
 
-        # 读取png
-        png_file = '../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01.png'
-        png = cv2.imread(png_file)
-        v_height = png.shape[0]
-        u_width = png.shape[1]
-        for uv in uv_list:
-            uv = [float(uv[0]), float(uv[1])]
-            u = uv[0] * u_width
-            v = uv[1] * v_height
-            u = int(u)
-            v = int(v)
-            if u <= 2:
-                u = 2
-            if v <= 2:
-                v = 2
-            if u >= u_width - 3:
-                u = u_width - 3
-            if v >= v_height - 3:
-                v = v_height - 3
-            # 将这个坐标置为白色
-            # png[v - 1][u - 1] = [255, 0, 0]
-            cv2.rectangle(png, (u - 2, v - 2), (u + 2, v + 2), (255, 0, 0), 1)
-        cv2.imwrite('../outer_files/LFMB_Visual_Hull_Meshes256/uv_in_png.png', png)
+# 根据uv信息，在png中以白色点的形式显示，查看uv信息是否正确
+def test_show_uv_in_png(self):
+    # 读取uv信息
+    uv_file = '../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01_new.obj'
+    uv_list = []
+    with open(uv_file) as f:
+        for line in f:
+            str = line.split(" ")
+            if str[0] == 'vt':
+                cur_uv = [str[1], str[2].replace('\n', '')]
+                uv_list.append(cur_uv)
+            else:
+                continue
 
-    def test_get_average_gray(self):
-        png = np.array([[1, 2], [3, 4]])
-        gray = ftm.get_average_gray(png)
-        self.assertEqual(gray, 2.5)
-        png2 = np.array([[0, 1, 2], [3, 4, 5]])
-        gray2 = ftm.get_average_gray(png2)
-        self.assertEqual(gray2, 3)
+    # 读取png
+    png_file = '../outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01.png'
+    png = cv2.imread(png_file)
+    v_height = png.shape[0]
+    u_width = png.shape[1]
+    for uv in uv_list:
+        uv = [float(uv[0]), float(uv[1])]
+        u = uv[0] * u_width
+        v = uv[1] * v_height
+        u = int(u)
+        v = int(v)
+        if u <= 2:
+            u = 2
+        if v <= 2:
+            v = 2
+        if u >= u_width - 3:
+            u = u_width - 3
+        if v >= v_height - 3:
+            v = v_height - 3
+        # 将这个坐标置为白色
+        # png[v - 1][u - 1] = [255, 0, 0]
+        cv2.rectangle(png, (u - 2, v - 2), (u + 2, v + 2), (255, 0, 0), 1)
+    cv2.imwrite('../outer_files/LFMB_Visual_Hull_Meshes256/uv_in_png.png', png)
+
+
+def test_get_average_gray(self):
+    png = np.array([[1, 2], [3, 4]])
+    gray = ftm.get_average_gray(png)
+    self.assertEqual(gray, 2.5)
+    png2 = np.array([[0, 1, 2], [3, 4, 5]])
+    gray2 = ftm.get_average_gray(png2)
+    self.assertEqual(gray2, 3)

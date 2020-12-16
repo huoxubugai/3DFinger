@@ -17,7 +17,7 @@ import time
 if __name__ == '__main__':
     start = time.time()
     # todo 遍历文件夹下的所有mesh 操作每一个
-    file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/0001_2_01'
+    file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01'
     obj_suffix = '.obj'
     uv_file_path = file_path + '.txt'
     # todo 文件读取异常处理
