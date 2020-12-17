@@ -4,8 +4,8 @@ import math
 import process.process_finger_data as pfd
 
 # 目前选用的图片尺寸
-cur_pic_size = [640, 400]
-# cur_pic_size = [1280, 800]
+# cur_pic_size = [640, 400]
+cur_pic_size = [1280, 800]
 # 相机索引对应相机名称
 camera_index_to_name = ['A', 'B', 'C', 'D', 'E', 'F']
 # 6个相机的外参
@@ -188,9 +188,12 @@ crops_v_scale_in_png = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
 # uvmap_png的长度和宽度
 uv_map_size = [0, 0]
 
+# 优化部分需要用到，每个面三个顶点对应的camera_index,形如[[0,1,1],[1,1,1]...]
+vertex_in_faces_belong_camera = []
 # face的索引 寻找bug时使用
 face_index = 1
-
+# 为crop出的图片上下各预留10个像素的高度
+reserve_pixels = 10
 # 跳过无关信息的行数，读取以及写入obj时，可能会出现注释的信息，需要跳过,目前定为30行以内的信息都可以跳过，可根据需求更改
 skip_lines_count_in_obj = 30
 

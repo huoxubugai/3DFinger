@@ -34,6 +34,7 @@ def get_faces_belong_which_camera(camera_index_to_points, faces_point):
             face_with_camera.append(camera_index)
         max_count_camera = max(face_with_camera, key=face_with_camera.count)  # 得出列表中出现最多次数的相机索引
         camera_index_to_faces[i] = max_count_camera
+        tl.vertex_in_faces_belong_camera.append(face_with_camera)  # 优化部分需要用到，因此放入全局变量
         # face.append(max_count_camera)
         # camera_index_to_faces.append(face)
     return camera_index_to_faces
@@ -60,7 +61,7 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
     key = str(camera_index) + "_" + str(vertex_index)
     # 判断哈希表中是否已经存在该数据，避免重复计算
     if key not in tl.map_vertex_to_texture.keys():
-        camera_projection_mat = tl.all_camera_projection_mat_640_400[camera_index]
+        camera_projection_mat = tl.all_camera_projection_mat[camera_index]
         camera_projection_mat = np.mat(camera_projection_mat)
         # 根据公式，将点的x,y,z坐标变为4*1矩阵形式，最后补1
         point_mat = np.mat([[vertex_data[0]],
@@ -80,7 +81,7 @@ def get_texture_for_vertex(vertex_data, camera_index, vertex_index):
         if u > tl.cur_pic_size[0]:
             u = tl.cur_pic_size[0]
         if v > tl.cur_pic_size[1]:
-            v = tl.cur_pic_size
+            v = tl.cur_pic_size[1]
         if u <= 0:
             u = 1
         if v <= 0:
@@ -142,7 +143,7 @@ def crop_bmp_to_png(file_path):
             cur_crop_bmp = average_png_gray(cur_crop_bmp, target_gray)
         # 将crop出的图放入png中
         put_crop_into_png(cur_crop_bmp, uv_map_png, i)
-    # resize成1280*1600大小
+    # resize成640, 960大小
     print(time.time() - start)
 
     size = [1280, 1600]
@@ -153,6 +154,11 @@ def crop_bmp_to_png(file_path):
 
 # 计算crop出的图片宽度和高度
 def calculate_crop_width_and_height():
+    # 对crop的图片高度上下都预留出10个像素
+    # for i in range(0, 6):
+    #     # todo 范围安全控制
+    #     tl.bmp_crop_ranges[i][1] -= tl.reserve_pixels
+    #     tl.bmp_crop_ranges[i][3] += tl.reserve_pixels
     tl.crops_width_and_height[0] = [tl.bmp_crop_ranges[0][2] - tl.bmp_crop_ranges[0][0],
                                     tl.bmp_crop_ranges[0][3] - tl.bmp_crop_ranges[0][1]]
     tl.crops_width_and_height[1] = [tl.bmp_crop_ranges[1][2] - tl.bmp_crop_ranges[1][0],

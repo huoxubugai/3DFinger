@@ -10,12 +10,14 @@
 from process import process_finger_data as pfd, faces_texture_mapping as ftm
 from tool import tools as tl
 import time
+from process import optimize_outer_para as oop
 
 # todo 所有异常处理，包括文件读取异常，除零异常等等
 '通过面进行纹理映射'
-if __name__ == '__main__':
+
+
+def main(file_path):
     start = time.time()
-    file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/0001_2_01'
     obj_suffix = '.obj'
     # 拿到mesh所有顶点数据
     data_points, face_start_index = pfd.read_mesh_points(file_path + obj_suffix)
@@ -33,5 +35,19 @@ if __name__ == '__main__':
 
     # 纹理映射部分，这里和之前先后顺序不同，要从三角面片出发，得到每个面对应的相机，再将三角面片上的三个顶点投影到这个相机对应的bmp图片上，找到uv值
     faces_point = pfd.read_mesh_faces(file_path + obj_suffix, face_start_index)  # 读取obj中face的顶点数据
-    faces_texture = ftm.mapping_faces_gray(data_points, camera_index_to_points, faces_point, file_path)  # 拿到所有面的纹理区域
+    ftm.mapping_faces_gray(data_points, camera_index_to_points, faces_point, file_path)  # 拿到所有面的纹理区域
     print("程序执行时间为:", time.time() - start, "秒")
+
+    # todo 优化部分
+    # 先得到边界的点
+    points_in_edge = oop.get_all_points_in_edge(faces_point, tl.vertex_in_faces_belong_camera)
+    # 计算边界点在不同所属图片中的灰度值
+    edge_points_grays = oop.get_points_gray_in_2_pic(points_in_edge, data_points, file_path)
+    # 计算灰度之间的损失：灰度之差的绝对值之和
+    loss = oop.calculate_loss(edge_points_grays)
+    return loss
+
+
+if __name__ == '__main__':
+    file_path = 'outer_files/LFMB_Visual_Hull_Meshes256/001_1_2_01'
+    loss = main(file_path)
