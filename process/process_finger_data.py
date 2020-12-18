@@ -154,7 +154,7 @@ def get_data_points_from_which_camera(center_point, data_points_mapping, cameras
     # print("每个相机出现的次数为：", camera_index_count)  # 分别为38, 49, 51, 36, 40, 42
     return camera_index_to_points  # 这里返回的应该是源数据 而不是映射数据
 
-
+# 基于顶点使用到
 def get_data_points_from_which_camera2(center_point, data_points_mapping, cameras_coordinate_mapping, data_points):
     camera_index_and_uv = np.zeros([len(data_points), 3], dtype=np.int)
     for i in range(len(data_points_mapping)):

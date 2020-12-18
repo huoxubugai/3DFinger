@@ -58,6 +58,15 @@ def get_gray_for_point(vertex_data, camera_index, file_path):
     pic_path_prefix = 'outer_files/images/' + path_str[2]  # todo 注意这里的索引会随着文件路径改变而改变
     pic_file_path = pic_path_prefix + '_' + camera_name + '.bmp'  # 拼接文件名
     cur_uv = ptm.get_texture_for_single_point(vertex_data, camera_index)
+    # 归到正确的范围内
+    if cur_uv[0] > tl.cur_pic_size[0]:
+        cur_uv[0] = tl.cur_pic_size[0]
+    if cur_uv[1] > tl.cur_pic_size[1]:
+        cur_uv[1] = tl.cur_pic_size
+    if cur_uv[0] <= 0:
+        cur_uv[0] = 1
+    if cur_uv[1] <= 0:
+        cur_uv[1] = 1
     rgb_gray = ptm.get_pic_gray(pic_file_path, camera_index, cur_uv[0], cur_uv[1])
     gray = (rgb_gray[0] * 299 + rgb_gray[1] * 587 + rgb_gray[2] * 114) / 1000  # 将r,g，b转换为灰度值
     gray = round(gray)
