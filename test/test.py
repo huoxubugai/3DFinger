@@ -35,10 +35,10 @@ show_camera_origins_in_3d(camera_origins)
 
 # 验证平面函数正确性
 a = np.array([[0.52, 0.7, 0.2], [0, 2, 0], [2, 0, 0], [0, 2, 2], [0.5, -0.7, 0.1], [0, 0, 1]])
-plane = pfd.get_camera_plane(a)
+plane = pfd.get_camera_plane_bcd(a)
 print(plane)
 # 求出相机平面方程
-plane2 = pfd.get_camera_plane(camera_origins)
+plane2 = pfd.get_camera_plane_bcd(camera_origins)
 # print(plane2)
 
 # 验证映射函数的正确性

@@ -34,6 +34,31 @@ def get_all_points_in_edge(faces_points, vertex_in_faces_belong_camera):
     return points_in_edge
 
 
+# 获取指定两个相机之间的边界点
+def get_points_in_edge_between_special_camera(faces_points, vertex_in_faces_belong_camera, camera_index1,
+                                              camera_index2):
+    points_in_edge = []
+    for i in range(0, len(faces_points)):
+        cur_vertex_in_face_camera = vertex_in_faces_belong_camera[i]
+        cur_face = faces_points[i]
+        a = cur_vertex_in_face_camera[0]
+        b = cur_vertex_in_face_camera[1]
+        c = cur_vertex_in_face_camera[2]
+        if (a == b and b == c) or (a != b and b != c and c != a):  # 如果a b c全相等或者全不相等则该面不属于边界
+            continue
+        elif (a == camera_index1 or a == camera_index2) and (b == camera_index1 or b == camera_index2) \
+                and (c == camera_index1 or c == camera_index2):
+            if a == b:
+                cur_point_in_edge = [cur_face[2], a, c]
+            elif a == c:
+                cur_point_in_edge = [cur_face[1], a, b]
+            else:
+                cur_point_in_edge = [cur_face[0], b, a]
+            if cur_point_in_edge not in points_in_edge:  # 对列表去重
+                points_in_edge.append(cur_point_in_edge)
+    return points_in_edge
+
+
 def get_points_gray_in_2_pic(points_in_edge, data_points, file_path):
     edge_points_grays = []
     for edge_point in points_in_edge:

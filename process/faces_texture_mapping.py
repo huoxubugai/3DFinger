@@ -14,13 +14,12 @@ def mapping_faces_gray(data_points, camera_index_to_points, faces_point, file_pa
     # 拿到三角面片对应的相机后，对该三角面片做相应图片的映射，三维——>二维
     for face, camera_index in zip(faces_point, camera_index_to_faces):
         get_texture_from_bmp(face, camera_index, data_points, file_path)  # 会将所有三角面片对应点的纹理全放进哈希表中,同时对面片按相机分类
-    start = time.time()
     # 根据全局变量bmp_crop_ranges，去对bmp图片做crop，然后放入uv map png图片中
     crop_bmp_to_png(file_path)
 
     # 对每个面进行遍历，获取面上的点再uvmap_png中的对应uv值，然后按预期格式会写到obj文件中
-    uv_val_in_obj, vt_list = get_png_uv_from_crops(faces_point, camera_index_to_faces)
-    write_uv_to_obj(uv_val_in_obj, vt_list, file_path)
+    # uv_val_in_obj, vt_list = get_png_uv_from_crops(faces_point, camera_index_to_faces) #在优化部分可以暂时注释
+    # write_uv_to_obj(uv_val_in_obj, vt_list, file_path) #在优化部分可以暂时注释
 
 
 # 获得三角面片属于什么相机
@@ -132,7 +131,7 @@ def crop_bmp_to_png(file_path):
     # 计算出crop的v在png中所占的比重范围
     calculate_crop_v_scale_in_png()
     target_gray = 0
-    start = time.time()
+    # start = time.time()
     for i in range(0, 6):
         cur_crop_range = tl.bmp_crop_ranges[i]
         cur_crop_bmp = crop_bmp(cur_crop_range, i, file_path)
@@ -144,7 +143,7 @@ def crop_bmp_to_png(file_path):
         # 将crop出的图放入png中
         put_crop_into_png(cur_crop_bmp, uv_map_png, i)
     # resize成640, 960大小
-    print(time.time() - start)
+    # print(time.time() - start)
 
     size = [1280, 1600]
     png = resize_png(uv_map_png, size)  # 造成的形变是否会影响结果

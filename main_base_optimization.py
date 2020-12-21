@@ -16,26 +16,27 @@ from process import process_finger_data as pfd
 
 # 6个相机外参预处理：由于相机外参在不断改变，因此每次都需要重新计算投影矩阵、相机三维坐标、相机平面方程、相机映射坐标
 def pre_process():
-    outer_para_preprocess()
+    outer_para_preprocess(0, 5)
     cameras_coordinate_preprocess()
 
 
 # 相机外参预处理
-def outer_para_preprocess():
+def outer_para_preprocess(camera_index_start, camera_index_end):
     # 6个相机的外参，需要保存6分随机因子
-    for j in range(0, 6):
-        a = random.uniform(-0.1, 0.1)
-        b = random.uniform(-0.1, 0.1)
-        c = random.uniform(-0.1, 0.1)
-        d = random.uniform(-0.1, 0.1)
-        e = random.uniform(-0.1, 0.1)
-        f = random.uniform(-0.1, 0.1)
-        g = random.uniform(-0.1, 0.1)
-        h = random.uniform(-0.1, 0.1)
-        i = random.uniform(-0.1, 0.1)
-        t1 = random.uniform(-0.1, 0.1)
-        t2 = random.uniform(-0.1, 0.1)
-        t3 = random.uniform(-0.1, 0.1)
+    for j in range(camera_index_start, camera_index_end + 1):
+        random_range = [-0.04, 0.04]
+        a = random.uniform(random_range[0], random_range[1])
+        b = random.uniform(random_range[0], random_range[1])
+        c = random.uniform(random_range[0], random_range[1])
+        d = random.uniform(random_range[0], random_range[1])
+        e = random.uniform(random_range[0], random_range[1])
+        f = random.uniform(random_range[0], random_range[1])
+        g = random.uniform(random_range[0], random_range[1])
+        h = random.uniform(random_range[0], random_range[1])
+        i = random.uniform(random_range[0], random_range[1])
+        t1 = random.uniform(random_range[0], random_range[1])
+        t2 = random.uniform(random_range[0], random_range[1])
+        t3 = random.uniform(random_range[0], random_range[1])
         random_outer_para_change = np.mat([[a, b, c, t1],
                                            [d, e, f, t2],
                                            [g, h, i, t3],
@@ -56,15 +57,23 @@ def cameras_coordinate_preprocess():
                           pfd.get_single_camera_origin(tl.cameras_outer_para[5])]
     # 将list转为array
     cameras_coordinate = np.array(cameras_coordinate)
-    camera_plane_para = pfd.get_camera_plane(cameras_coordinate)
-    tl.camera_plane_para = camera_plane_para
-    # 获取A，E，F的映射点
-    camera_a_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[0], camera_plane_para)
-    camera_e_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[4], camera_plane_para)
-    camera_f_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[5], camera_plane_para)
-    # 六个相机归到一个平面之后的坐标：BCD不变，AEF映射到BCD平面
-    cameras_coordinate_mapping = [camera_a_point, cameras_coordinate[1], cameras_coordinate[2],
-                                  cameras_coordinate[3], camera_e_point, camera_f_point]
+    camera_plane_para_bcd = pfd.get_camera_plane_bcd(cameras_coordinate)
+    camera_plane_para_abf = pfd.get_camera_plane_abf(cameras_coordinate)
+    tl.camera_plane_para = camera_plane_para_bcd
+    # # 获取A，B、C、D、E，F在bcd平面的映射点
+    # camera_a_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[0], camera_plane_para_bcd)
+    # camera_b_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[1], camera_plane_para_bcd)
+    # camera_c_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[2], camera_plane_para_bcd)
+    # camera_d_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[3], camera_plane_para_bcd)
+    # camera_e_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[4], camera_plane_para_bcd)
+    # camera_f_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[5], camera_plane_para_bcd)
+    # 获取A，B、C、D、E，F在abf平面的映射点
+    camera_c_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[2], camera_plane_para_abf)
+    camera_d_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[3], camera_plane_para_abf)
+    camera_e_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[4], camera_plane_para_abf)
+    # 六个相机归到一个平面之后的坐标：
+    cameras_coordinate_mapping = [cameras_coordinate[0], cameras_coordinate[1], camera_c_point,
+                                  camera_d_point, camera_e_point, cameras_coordinate[5]]
     cameras_coordinate_mapping = np.array(cameras_coordinate_mapping)
     tl.cameras_coordinate_mapping = cameras_coordinate_mapping
 
@@ -86,30 +95,30 @@ def recover_changed_variables():
 def recover_cameras_related_variables():
     # 应该只需要改这一个变量(会累积)
     tl.cameras_outer_para = [
-        [[0.574322111, 0.771054881, 0.275006333, 0.93847817],
-         [0.565423192, -0.130698104, -0.814379899, -0.36935905],
-         [-0.591988790, 0.623211341, -0.511035123, 4.78810628],
-         [0, 0, 0, 1]],
-        [[0.456023570, 0.727006744, 0.513326112, 1.72205846],
-         [-0.146061166, 0.630108915, -0.762645980, -0.30452329],
-         [-0.877900131, 0.272807532, 0.393531969, 5.53092307],
-         [0, 0, 0, 1]],
-        [[0.609183831, 0.528225460, 0.591500569, 1.59956459],
-         [-0.738350101, 0.649953779, 0.179997814, 0.5030131],
-         [-0.289368602, -0.546386263, 0.785956655, 5.58635091],
-         [0, 0, 0, 1]],
-        [[0.771746127, 0.478767298, 0.418556793, 0.955855425],
-         [-0.476877262, 0.000270229651, 0.878969854, 0.477556906],
-         [0.420708915, -0.877941799, 0.228521787, 4.61760675],
-         [0, 0, 0, 1]],
-        [[0.788882832, 0.555210653, 0.263448302, 0.71648894],
-         [0.159053746, -0.598545227, 0.785140445, 0.00777088],
-         [0.593604063, -0.577481378, -0.560490387, 4.30437514],
-         [0, 0, 0, 1]],
-        [[0.712321206, 0.689000523, 0.133704068, 1.13938413],
-         [0.694227260, -0.719684989, 0.0101009224, -0.28640104],
-         [0.103184351, 0.0856259076, -0.990969825, 4.49819911],
-         [0, 0, 0, 1]]
+        np.mat([[0.574322111, 0.771054881, 0.275006333, 0.93847817],
+                [0.565423192, -0.130698104, -0.814379899, -0.36935905],
+                [-0.591988790, 0.623211341, -0.511035123, 4.78810628],
+                [0, 0, 0, 1]]),
+        np.mat([[0.456023570, 0.727006744, 0.513326112, 1.72205846],
+                [-0.146061166, 0.630108915, -0.762645980, -0.30452329],
+                [-0.877900131, 0.272807532, 0.393531969, 5.53092307],
+                [0, 0, 0, 1]]),
+        np.mat([[0.609183831, 0.528225460, 0.591500569, 1.59956459],
+                [-0.738350101, 0.649953779, 0.179997814, 0.5030131],
+                [-0.289368602, -0.546386263, 0.785956655, 5.58635091],
+                [0, 0, 0, 1]]),
+        np.mat([[0.771746127, 0.478767298, 0.418556793, 0.955855425],
+                [-0.476877262, 0.000270229651, 0.878969854, 0.477556906],
+                [0.420708915, -0.877941799, 0.228521787, 4.61760675],
+                [0, 0, 0, 1]]),
+        np.mat([[0.788882832, 0.555210653, 0.263448302, 0.71648894],
+                [0.159053746, -0.598545227, 0.785140445, 0.00777088],
+                [0.593604063, -0.577481378, -0.560490387, 4.30437514],
+                [0, 0, 0, 1]]),
+        np.mat([[0.712321206, 0.689000523, 0.133704068, 1.13938413],
+                [0.694227260, -0.719684989, 0.0101009224, -0.28640104],
+                [0.103184351, 0.0856259076, -0.990969825, 4.49819911],
+                [0, 0, 0, 1]])
     ]
     tl.cur_random_cameras_outer_para = [
         [[0, 0, 0, 0],
@@ -171,25 +180,28 @@ if __name__ == '__main__':
     path_list = os.listdir(dir_path)
     cur_total_loss = 0
     min_total_loss = 9999999  # 设定最大值为一个较大的数
-    for i in range(0, 3):
+    for i in range(0, 120):
         # 6个相机外参预处理：由于相机外参在不断改变，因此每次都需要重新计算投影矩阵、相机三维坐标、相机平面方程、相机映射坐标
         pre_process()
         for path in path_list:
             path_str = path.split(".")
             cur_file_path = dir_path + '/' + path_str[0]
             cur_loss = main_base_face.main(cur_file_path)
-            print("目前损失为：", cur_loss)
+            # print("目前损失为：", cur_loss)
             cur_total_loss += cur_loss
             # todo 恢复所有变更了的全局变量
             recover_changed_variables()
-        print("总损失为：", cur_total_loss)
+        print("第", i, "次的总损失为：", cur_total_loss)
         if cur_total_loss < min_total_loss:
             min_total_loss = cur_total_loss
             tl.optimal_random_cameras_outer_para = tl.cur_random_cameras_outer_para  # 将当前的随机因子写入最佳随机因子
+
+        print("当前最小总损失为：", min_total_loss)
         # 损失重置为0
-        print("最小总损失为：", min_total_loss)
         cur_total_loss = 0
         # todo  目前需要复原全局变量，否则会一直累积
         recover_cameras_related_variables()
-
+        if i % 10 == 0:
+            print("当前最优随机因子为:", tl.optimal_random_cameras_outer_para)
+    print("最优随机因子为：", tl.optimal_random_cameras_outer_para)
     # todo  损失比较，随机因子保存

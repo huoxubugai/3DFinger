@@ -104,8 +104,8 @@ def get_single_camera_origin(m2):
     return origin
 
 
-# 获取相机平面ax+by+cz+d=0
-def get_camera_plane(cameras_coordinate):
+# 获取以BCD为基准的相机平面ax+by+cz+d=0
+def get_camera_plane_bcd(cameras_coordinate):
     # B相机坐标
     x1 = cameras_coordinate[1][0]
     y1 = cameras_coordinate[1][1]
@@ -118,6 +118,29 @@ def get_camera_plane(cameras_coordinate):
     x3 = cameras_coordinate[3][0]
     y3 = cameras_coordinate[3][1]
     z3 = cameras_coordinate[3][2]
+
+    a = (y2 - y1) * (z3 - z1) - (y3 - y1) * (z2 - z1)
+    b = (z2 - z1) * (x3 - x1) - (z3 - z1) * (x2 - x1)
+    c = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1)
+    d = -a * x1 - b * y1 - c * z1
+    plane_para = [a, b, c, d]
+    return plane_para
+
+
+# 获取以ABF为基准的相机平面ax+by+cz+d=0
+def get_camera_plane_abf(cameras_coordinate):
+    # A相机坐标
+    x1 = cameras_coordinate[0][0]
+    y1 = cameras_coordinate[0][1]
+    z1 = cameras_coordinate[0][2]
+    # B相机坐标
+    x2 = cameras_coordinate[1][0]
+    y2 = cameras_coordinate[1][1]
+    z2 = cameras_coordinate[1][2]
+    # F相机坐标
+    x3 = cameras_coordinate[5][0]
+    y3 = cameras_coordinate[5][1]
+    z3 = cameras_coordinate[5][2]
 
     a = (y2 - y1) * (z3 - z1) - (y3 - y1) * (z2 - z1)
     b = (z2 - z1) * (x3 - x1) - (z3 - z1) * (x2 - x1)
@@ -153,6 +176,7 @@ def get_data_points_from_which_camera(center_point, data_points_mapping, cameras
         # camera_index_count[cur_target_camera_index] += 1
     # print("每个相机出现的次数为：", camera_index_count)  # 分别为38, 49, 51, 36, 40, 42
     return camera_index_to_points  # 这里返回的应该是源数据 而不是映射数据
+
 
 # 基于顶点使用到
 def get_data_points_from_which_camera2(center_point, data_points_mapping, cameras_coordinate_mapping, data_points):
