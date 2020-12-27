@@ -100,7 +100,9 @@ def get_gray_for_point(vertex_data, camera_index, file_path):
 
 def calculate_loss(edge_points_grays):
     loss = 0
+    size = len(edge_points_grays)
     for grays in edge_points_grays:
         gray_difference = grays[1] - grays[2]
-        loss += abs(gray_difference)
-    return loss
+        loss += (gray_difference * gray_difference)
+    # todo  考虑是否除以size
+    return loss / size

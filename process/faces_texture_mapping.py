@@ -15,7 +15,7 @@ def mapping_faces_gray(data_points, camera_index_to_points, faces_point, file_pa
     for face, camera_index in zip(faces_point, camera_index_to_faces):
         get_texture_from_bmp(face, camera_index, data_points, file_path)  # 会将所有三角面片对应点的纹理全放进哈希表中,同时对面片按相机分类
     # 根据全局变量bmp_crop_ranges，去对bmp图片做crop，然后放入uv map png图片中
-    crop_bmp_to_png(file_path)
+    # crop_bmp_to_png(file_path) #在优化部分可以暂时注释
 
     # 对每个面进行遍历，获取面上的点再uvmap_png中的对应uv值，然后按预期格式会写到obj文件中
     # uv_val_in_obj, vt_list = get_png_uv_from_crops(faces_point, camera_index_to_faces) #在优化部分可以暂时注释

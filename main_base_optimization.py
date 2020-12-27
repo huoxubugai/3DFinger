@@ -20,11 +20,11 @@ def pre_process():
     cameras_coordinate_preprocess()
 
 
-# 相机外参预处理
+# 相机外参预处理 选定变化的相机范围
 def outer_para_preprocess(camera_index_start, camera_index_end):
     # 6个相机的外参，需要保存6分随机因子
     for j in range(camera_index_start, camera_index_end + 1):
-        random_range = [-0.04, 0.04]
+        random_range = [-0.07, 0.07]
         a = random.uniform(random_range[0], random_range[1])
         b = random.uniform(random_range[0], random_range[1])
         c = random.uniform(random_range[0], random_range[1])
@@ -59,7 +59,7 @@ def cameras_coordinate_preprocess():
     cameras_coordinate = np.array(cameras_coordinate)
     camera_plane_para_bcd = pfd.get_camera_plane_bcd(cameras_coordinate)
     camera_plane_para_abf = pfd.get_camera_plane_abf(cameras_coordinate)
-    tl.camera_plane_para = camera_plane_para_bcd
+    tl.camera_plane_para = camera_plane_para_abf
     # # 获取A，B、C、D、E，F在bcd平面的映射点
     # camera_a_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[0], camera_plane_para_bcd)
     # camera_b_point = tl.get_mapping_point_in_camera_plane(cameras_coordinate[1], camera_plane_para_bcd)
@@ -76,6 +76,10 @@ def cameras_coordinate_preprocess():
                                   camera_d_point, camera_e_point, cameras_coordinate[5]]
     cameras_coordinate_mapping = np.array(cameras_coordinate_mapping)
     tl.cameras_coordinate_mapping = cameras_coordinate_mapping
+
+
+def calculate_gradient():
+    pass
 
 
 # 每次完整的操作之后 都要恢复被改变的全局变量
@@ -175,12 +179,13 @@ def recover_cameras_related_variables():
                                      [-1.08130466, -1.38038999, 4.30582486]]
 
 
+'注意事项：1、用的是什么相机平面 2、优化的是什么相机范围，默认0-5全相机，范围不同边界点也不一样 3、随机因子范围'
 if __name__ == '__main__':
     dir_path = 'outer_files/LFMB_Visual_Hull_Meshes256'
     path_list = os.listdir(dir_path)
     cur_total_loss = 0
     min_total_loss = 9999999  # 设定最大值为一个较大的数
-    for i in range(0, 120):
+    for i in range(0, 200):
         # 6个相机外参预处理：由于相机外参在不断改变，因此每次都需要重新计算投影矩阵、相机三维坐标、相机平面方程、相机映射坐标
         pre_process()
         for path in path_list:
